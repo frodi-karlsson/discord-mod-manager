@@ -107,7 +107,7 @@ export class DiscordPatcher {
   }
 
   static findDiscordCore() {
-    let discordCorePath;
+    let discordCorePath: string | undefined;
     if (process.platform === "win32") {
       const localAppData = process.env.LOCALAPPDATA;
       if (!localAppData) throw new Error("Could not find local app data");
@@ -125,11 +125,22 @@ export class DiscordPatcher {
       );
     }
     if (!discordCorePath) throw new Error("Could not find discord core path");
+    const definitelyDiscordCorePath = discordCorePath;
     const directories = fs.readdirSync(discordCorePath);
-    const versionDir = directories.find((dir) => /app-\d+\.\d+\.\d+/.test(dir));
+    const versionDir = directories.filter((dir) =>
+      /app-\d+\.\d+\.\d+/.test(dir)
+    );
     if (!versionDir)
       throw new Error("Could not find discord version directory");
-    const modulesPath = path.resolve(discordCorePath, versionDir, "modules");
+    const modules = versionDir.filter((dir) =>
+      fs.existsSync(path.resolve(definitelyDiscordCorePath, dir, "modules"))
+    );
+    const highestVersion = modules.sort((a, b) => b.localeCompare(a))[0];
+    const modulesPath = path.resolve(
+      definitelyDiscordCorePath,
+      highestVersion,
+      "modules"
+    );
     const modulesDirectories = fs.readdirSync(modulesPath);
     const coreDir = modulesDirectories.find((dir) =>
       dir.startsWith("discord_desktop_core")
