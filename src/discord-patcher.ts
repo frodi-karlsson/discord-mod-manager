@@ -92,12 +92,6 @@ export class DiscordPatcher {
     const mainScreen = DiscordPatcher.getMainScreen(corePath);
     DiscordPatcher.backupCore(corePath);
     const patchedMainScreen = this.patchMainScreen(mainScreen);
-    const logDir = path.resolve(__dirname, "logs");
-    if (!fs.existsSync(logDir)) mkdirp.sync(logDir);
-    fs.writeFileSync(
-      path.resolve(__dirname, "logs/mainScreen.js"),
-      patchedMainScreen
-    );
     console.log("patching at", corePath);
     DiscordPatcher.writeMainScreen(corePath, patchedMainScreen, opts.dryRun);
   }

@@ -1,8 +1,22 @@
 import { Mod } from "discord-modding-framework";
 import fs from "fs";
 import path from "path";
-const MinimizeableDms = new Mod("minimizeable-dms");
-const SmallerWindow = new Mod("smaller-window");
+const MinimizeableDms = new Mod(
+  "minimizeable-dms",
+  undefined,
+  "1.0.0",
+  undefined,
+  "frodi-karlsson",
+  "Allows you to collaps the DMs sidebar"
+);
+const SmallerWindow = new Mod(
+  "smaller-window",
+  [MinimizeableDms],
+  "1.0.0",
+  undefined,
+  "frodi-karlsson",
+  "Allows you to make the window smaller"
+);
 
 MinimizeableDms.on("dom-ready", (mainWindow) => {
   mainWindow.webContents.executeJavaScript(`
