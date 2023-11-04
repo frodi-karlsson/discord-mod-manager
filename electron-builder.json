@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
+  "appId": "com.electron.discord-mod-manager",
+  "asar": true,
+  "executableName": "Discord Mod Manager",
+  "productName": "Discord Mod Manager",
+  "win": {
+    "target": "nsis",
+    "publisherName": "frodi-karlsson"
+  },
+  "icon": "assets/dmm.ico",
+  "directories": {
+    "output": "release",
+    "app": "build"
+  },
+  "files": ["**/*"],
+  "extraResources": ["assets/**/*"],
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "frodi-karlsson",
+      "repo": "discord-mod-manager",
+      "releaseType": "draft"
+    }
+  ]
+}

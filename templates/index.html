@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Discord Mod Manager</title>
+  </head>
+  <body>
+    <style>
+      body {
+        background-color: #36393f;
+        color: #fff;
+        font-family: sans-serif;
+      }
+
+      h1, h2 {
+        text-align: center;
+      }
+
+      #buttons {
+        width: 100%;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-evenly;
+        align-items: flex-start;
+      }
+
+      .button {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: calc(min(100%, 600px));
+        margin: 0 auto;
+      }
+
+      .button p {
+        text-align: center;
+        color: rgba(205, 205, 205, 0.8);
+        font-size: 0.8em;
+        width: 200px;
+      }
+
+      input[type="text"] {
+        height: 30px;
+        border-radius: 5px;
+        border: none;
+        background-color: #a5adbc;
+        color: #000000;
+        font-size: 1em;
+        font-weight: bold;
+      }
+
+      input[type="text"]:focus {
+        outline: none;
+      }
+
+      input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+      }
+
+      button, ::-webkit-file-upload-button, input[type="file"] {
+        width: 100px;
+        height: 30px;
+        border-radius: 5px;
+        border: none;
+        background-color: #7289da;
+        color: #fff;
+        font-size: 1em;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      #mod-list-top li span {
+        font-weight: bold;
+        color: rgba(205, 205, 205, 0.8);
+        margin-bottom: 10px;
+      }
+
+      #mods ul {
+        list-style-type: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: flex-start;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+
+      }
+
+      #mods ul li {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+      }
+
+      #mods ul li > *{
+        width: 250px;
+      }
+    </style>
+    <h1>Discord Mod Manager</h1>
+    <div id="buttons">
+      <div class="button">
+        <p>Refreshes the mod list</p>
+        <button id="refresh">Refresh</button>
+        <script type="text/javascript">
+          const refresh = document.getElementById("refresh");
+          refresh.addEventListener("click", () => {
+            window.electron.api.send("refresh");
+          });
+        </script>
+      </div>
+      <div class="button">
+        <p>Patches Discord</p>
+        <button id="patch">Patch</button>
+        <script type="text/javascript">
+          const patch = document.getElementById("patch");
+          patch.addEventListener("click", () => {
+            window.electron.api.send("patch");
+          });
+        </script>
+      </div>
+      <div class="button">
+        <p>Restores Discord to vanilla</p>
+        <button id="restore">Restore</button>
+        <script type="text/javascript">
+          const restore = document.getElementById("restore");
+          restore.addEventListener("click", () => {
+            window.electron.api.send("unpatch");
+          });
+        </script>
+      </div>
+      <div class="button">
+        <p>Installs mod from folder</p>
+        <input id="install-from-folder" type="file" webkitdirectory = "true" directory />
+        <script type="text/javascript">
+          const installFromFolder = document.getElementById("install-from-folder");
+          installFromFolder.addEventListener("change", (event) => {
+            const input = document.getElementById("install-from-folder");
+            console.log(input.files[0].path.split("\\").slice(0, -1).join("\\") + "\\");
+            window.electron.api.send("install", {
+              path: input.files[0].path.split("\\").slice(0, -1).join("\\") + "\\",
+            });
+          });
+        </script>
+      </div>
+      <div class="button">
+        <p>Installs mod from repo</p>
+      <div id="install-from-repo">
+        <input id="download-from-repo" type="text" />
+        <button id="install-from-repo">Install</button>
+        <script type="text/javascript">
+          const installFromRepo = document.getElementById("install-from-repo");
+          installFromRepo.addEventListener("click", () => {
+            window.electron.api.send("download", {
+              repo: document.getElementById("download-from-repo").value,
+            });
+          });
+        </script>
+      </div>
+    </div>
+    <div id="mods">
+      <h2>Mods</h2>
+      <ul id="mod-list-top">
+        <li>
+          <span>ID</span>
+          <span>Enabled</span>
+          <span>Description</span>
+          <span>Version</span>
+          <span>Author</span>
+          <span>Repository</span>
+          <span>Uninstall</span>
+        </li>
+      </ul>
+      <ul id="mod-list"></ul>
+    </div>
+    <script type="text/javascript">
+      let mods = [];
+
+      window.electron.api.receive("mods", (data) => {
+        console.log("Received mods: ", data);
+        mods = [...data];
+        console.log("Mods: ", mods);
+        makeModList();
+      });
+
+      function makeModList() {
+        const modList = document.getElementById("mod-list");
+        const children = [...modList.children];
+        [...modList.children].forEach((child) => {
+          modList.removeChild(child);
+        });
+        const lis = mods
+          .map((mod) => {
+            const li = document.createElement("li");
+            li.id = mod.id;
+            li.version = mod.version;
+            modList.appendChild(li);
+            return li;
+          });
+        lis.forEach((li) => {
+          const mod = mods.find((mod) => {
+            const id = mod.id;
+            const version = mod.version;
+            return id === li.id && version === li.version;
+          });
+          const id = document.createElement("span");
+          id.textContent = li.id;
+          id.classList.add("id");
+          li.appendChild(id);
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.checked = mod.enabled;
+          checkbox.title = "Enable/Disable";
+          checkbox.addEventListener("change", (event) => {
+            window.electron.api.send("enable", {
+              id: li.id,
+              version: li.version,
+              enabled: event.target.checked,
+            });
+          });
+          const checkBoxContainer = document.createElement("div");
+          checkBoxContainer.appendChild(checkbox);
+          li.appendChild(checkBoxContainer);
+          const description = document.createElement("p");
+          description.textContent = mod.description;
+          li.appendChild(description);
+          const version = document.createElement("p");
+          version.textContent = li.version;
+          li.appendChild(version);
+          const author = document.createElement("p");
+          author.textContent = mod.author;
+          li.appendChild(author);
+          const repo = document.createElement("p");
+          repo.textContent = mod.repository;
+          li.appendChild(repo);
+          const button = document.createElement("button");
+          button.textContent = "Uninstall";
+          button.addEventListener("click", (event) => {
+            window.electron.api.send("uninstall", {
+              id: li.id,
+              version: li.version,
+            });
+            modList.removeChild(li);
+          });
+
+          li.appendChild(button);
+        });
+      }
+
+      window.electron.api.receive("error", (data) => {
+        console.log("Received error: ", data);
+        alert(data);
+      });
+
+      window.electron.api.receive("success", (data) => {
+        console.log("Success: ", data);
+        alert(data);
+      });
+    </script>
+  </body>
+</html>
