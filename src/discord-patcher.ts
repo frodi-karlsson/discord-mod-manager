@@ -3,6 +3,7 @@ import * as mkdirp from "mkdirp";
 import { createPackage, extractAll } from "@electron/asar";
 import path from "path";
 import { ModJSON } from "./mod.js";
+import { execSync } from "child_process";
 
 class Graph {
   adjacencyList: { [key: string]: string[] };
@@ -148,6 +149,10 @@ export class DiscordPatcher {
     if (!coreDir)
       throw new Error("Could not find discord desktop core directory");
     const fullPath = path.resolve(modulesPath, coreDir, "discord_desktop_core");
+    const coreAsar = path.resolve(fullPath, "core.asar");
+    const coreAsarExists = fs.existsSync(coreAsar);
+    if (!coreAsarExists)
+      throw new Error("Could not find discord desktop core.asar");
     return fullPath;
   }
 
@@ -177,9 +182,14 @@ export class DiscordPatcher {
 
   static backupCore(corePath: string) {
     const backupPath = path.resolve(corePath, "core.asar.backup");
-    const exists = fs.existsSync(backupPath);
-    if (!exists)
-      fs.copyFileSync(path.resolve(corePath, "core.asar"), backupPath);
+    const coreFilePath = path.resolve(corePath, "core.asar");
+    const originalExists = fs.existsSync(coreFilePath);
+    if (!originalExists) throw new Error("Could not find core.asar to backup");
+    const backupExists = fs.existsSync(backupPath);
+    if (!backupExists) {
+      console.log("backing up core.asar from", coreFilePath, "to", backupPath);
+      execSync(`cp ${coreFilePath} ${backupPath}`); // fs doesn't play well with asar
+    }
   }
 
   static writeMainScreen(corePath: string, mainScreen: string, dryRun = false) {
