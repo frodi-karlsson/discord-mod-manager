@@ -283,6 +283,7 @@ async function initApp() {
     } catch (e: any) {
       const message = e.message ?? e;
       mainWindow?.webContents.send("error", message);
+      console.error(e);
       return;
     }
     mainWindow?.webContents.send("success", "Patched!");

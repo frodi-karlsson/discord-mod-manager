@@ -19,6 +19,21 @@ class Graph {
   }
 }
 
+function getTempFolder() {
+  let tempFolder;
+  if (process.platform === "win32") {
+    tempFolder =
+      process.env.TEMP ??
+      process.env.TMP ??
+      (process.env.SystemRoot ?? process.env.windir) + "\\temp";
+  } else {
+    tempFolder =
+      process.env.TMPDIR ?? process.env.TMP ?? process.env.TEMP ?? "/tmp";
+  }
+  if (!tempFolder) throw new Error("Could not find temp folder");
+  return tempFolder;
+}
+
 export class DiscordPatcher {
   private modJsons: ModJSON[];
   constructor(...modJsons: ModJSON[]) {
@@ -65,7 +80,11 @@ export class DiscordPatcher {
       throw new Error("Dependency cycle detected. Cannot sort mods");
     }
 
-    this.modJsons.sort((a, b) => topNums[a.id] - topNums[b.id]);
+    this.modJsons.sort((a, b) => topNums[b.id] - topNums[a.id]);
+    console.debug(
+      "sorted mods",
+      this.modJsons.map((mod) => mod.id)
+    );
   }
 
   patch(opts: { dryRun: boolean } = { dryRun: false }) {
@@ -129,18 +148,23 @@ export class DiscordPatcher {
 
   static getMainScreen(corePath: string) {
     const backup = path.resolve(corePath, "core.asar.backup");
+    const tempFolder = getTempFolder();
     const backUpExists = fs.existsSync(backup);
     if (backUpExists) {
-      extractAll(backup, path.resolve(__dirname, "temp/discord-core"));
+      console.log("using backup");
+      extractAll(backup, path.resolve(tempFolder, "discord-core"));
     } else {
+      console.log("using normal");
       const normal = path.resolve(corePath, "core.asar");
       const normalExists = fs.existsSync(normal);
       if (!normalExists)
         throw new Error("Could not find core.asar or core.asar.backup");
-      extractAll(normal, path.resolve(__dirname, "temp/discord-core"));
+      extractAll(normal, path.resolve(tempFolder, "discord-core"));
     }
+
+    console.log("reading mainScreen.js");
     const mainScreen = fs.readFileSync(
-      path.resolve(__dirname, "temp/discord-core/app/mainScreen.js"),
+      path.resolve(tempFolder, "discord-core", "app", "mainScreen.js"),
       "utf-8"
     );
     return mainScreen;
@@ -154,14 +178,16 @@ export class DiscordPatcher {
   }
 
   static writeMainScreen(corePath: string, mainScreen: string, dryRun = false) {
-    const tempDir = path.resolve(__dirname, "temp");
-    if (!fs.existsSync(tempDir)) mkdirp.sync(tempDir);
-    const coreDir = path.resolve(tempDir, "discord-core");
-    const mainScreenPath = path.resolve(coreDir, "app/mainScreen.js");
-    fs.writeFileSync(mainScreenPath, mainScreen);
+    const tempFolder = getTempFolder();
+    const tempPath = path.resolve(tempFolder, "discord-core");
+    console.log("writing mainScreen.js at", tempPath);
+    fs.writeFileSync(
+      path.resolve(tempPath, "app", "mainScreen.js"),
+      mainScreen
+    );
     if (dryRun) return;
     const coreFile = path.resolve(corePath, "core.asar");
-    createPackage(coreDir, coreFile);
+    createPackage(tempPath, coreFile);
     console.log("wrote core.asar at", coreFile);
   }
 

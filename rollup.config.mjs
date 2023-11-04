@@ -9,6 +9,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 console.log("Building for electron:", process.env.IS_ELECTRON === "true");
 
+const build = path.join(__dirname, "build");
+if (!fs.existsSync(build)) {
+  fs.mkdirSync(build);
+}
+
+console.log("Build folder created");
+
 const isElectron = process.env.IS_ELECTRON === "true";
 if (isElectron) {
   console.log("Building for electron");
@@ -34,6 +41,8 @@ if (isElectron) {
   }
   fs.writeFileSync(path.join(__dirname, "build", "package.json"), packageJson);
 
+  console.log("Package json written");
+
   // copy node_modules
   const nodeModules = path.join(__dirname, "node_modules");
   const buildNodeModules = path.join(__dirname, "build", "node_modules");
@@ -46,19 +55,20 @@ if (isElectron) {
     console.log(stderr);
   });
 
-  const templates = path.join(__dirname, "templates");
-  const buildTemplates = path.join(__dirname, "build", "templates");
-  exec(`cp -r ${templates} ${buildTemplates}`, (err, stdout, stderr) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    console.log(stdout);
-    console.log(stderr);
-  });
+  console.log("Node modules copied");
 }
 
-console.log("Package json written");
+const templates = path.join(__dirname, "templates");
+exec(`cp -r ${templates} ${build}`, (err, stdout, stderr) => {
+  if (err) {
+    console.error(err);
+    return;
+  }
+  console.log(stdout);
+  console.log(stderr);
+});
+
+console.log("Templates copied");
 
 export default [
   {
