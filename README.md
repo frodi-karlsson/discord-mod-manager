@@ -14,13 +14,18 @@ They also contain mod metadata.
 
 ## Mod Manager
 
-If you aren't a developer, find the latest release [here](https://github.com/frodi-karlsson/discord-mod-manager/releases/latest).
-Otherwise, see the development section below.
+If you aren't a developer, find the latest release [here](https://github.com/frodi-karlsson/discord-mod-manager/releases/latest). I also recommend reading the "Using the mod manager" section below.
 
+Otherwise, see the development section below under the "Using the mod manager" section.
+
+
+### Using the mod manager
 Here is an image of the mod manager in action:
+
+
 ![Mod Manager](https://gcdnb.pbrd.co/images/DOo2llUSBkXl.png?o=1)
 
-### Currently implementedd features as shown are:
+### Currently implemented features as shown are:
 - Refresh: Refreshes the list of installed mods. Should only be necessary if you manually move a mod into the mod folders.
 - Patch: Patches the current modlist into the discord app.
 - Restore: Restores the discord app to its original state.
