@@ -17,6 +17,19 @@ They also contain mod metadata.
 If you aren't a developer, find the latest release [here](https://github.com/frodi-karlsson/discord-mod-manager/releases/latest).
 Otherwise, see the development section below.
 
+Here is an image of the mod manager in action:
+![Mod Manager](https://gcdnb.pbrd.co/images/DOo2llUSBkXl.png?o=1)
+
+### Currently implementedd features as shown are:
+- Refresh: Refreshes the list of installed mods. Should only be necessary if you manually move a mod into the mod folders.
+- Patch: Patches the current modlist into the discord app.
+- Restore: Restores the discord app to its original state.
+- Choose File: Allows you to select a folder containing a mod.json file. This will install the mod.
+- The url field and install button: Allows you to install a mod from a git repository. The url should be the url to the repository, not the mod.json file.
+
+### Mod list
+The mod list shows all installed mods. It shows the mod id, description, version, author and repository. Most of these are optional, so don't be surprised if they are missing. Each mod also contains an enabled/disabled toggle, which allows you to disable a mod without uninstalling it. This requires a patch to take effect. The mod list also contains a button to uninstall a mod, which removes all files related to the mod. This also requires a patch to take effect.
+
 ## Modding Framework
 
 ```bash
