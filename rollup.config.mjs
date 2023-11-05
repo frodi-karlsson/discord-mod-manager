@@ -23,7 +23,7 @@ if (isElectron) {
   const projectPackageJson = JSON.parse(
     fs.readFileSync(path.join(__dirname, "package.json"), "utf-8")
   );
-  const packageJson = JSON.stringify({
+  const packageJson = {
     main: "app.cjs",
     description: "A mod manager for discord",
     author: projectPackageJson.author,
@@ -33,13 +33,27 @@ if (isElectron) {
     scripts: {
       start: "electron .",
     },
-    dependencies: projectPackageJson.dependencies,
+    dependencies: {},
+    devDependencies: {},
+  };
+
+  packageJson.devDependencies["electron"] =
+    projectPackageJson.dependencies["electron"];
+  Object.keys(projectPackageJson.dependencies).forEach((key) => {
+    if (key !== "electron") {
+      packageJson.dependencies[key] = projectPackageJson.dependencies[key];
+    }
   });
+
+  const packageJsonString = JSON.stringify(packageJson, null, 2);
 
   if (!fs.existsSync(path.join(__dirname, "build"))) {
     fs.mkdirSync(path.join(__dirname, "build"));
   }
-  fs.writeFileSync(path.join(__dirname, "build", "package.json"), packageJson);
+  fs.writeFileSync(
+    path.join(__dirname, "build", "package.json"),
+    packageJsonString
+  );
 
   console.log("Package json written");
 
