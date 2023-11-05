@@ -1,9 +1,7 @@
 import fs from "fs";
-import * as mkdirp from "mkdirp";
 import { createPackage, extractAll } from "@electron/asar";
 import path from "path";
 import { ModJSON } from "./mod.js";
-import { execSync } from "child_process";
 
 class Graph {
   adjacencyList: { [key: string]: string[] };
@@ -100,11 +98,25 @@ export class DiscordPatcher {
   // simply replacess core with backup
   unpatch(opts: { dryRun: boolean } = { dryRun: false }) {
     const corePath = DiscordPatcher.findDiscordCore();
-    const backupPath = path.resolve(corePath, "core.asar.backup");
+    const backupPath = DiscordPatcher.getBackUpPath();
     const exists = fs.existsSync(backupPath);
     if (!exists) throw new Error("Could not find backup");
     if (opts.dryRun) return;
     fs.copyFileSync(backupPath, path.resolve(corePath, "core.asar"));
+  }
+
+  static getBackUpPath() {
+    const corePath = DiscordPatcher.findDiscordCore();
+    const backupDir = path.resolve(corePath);
+    return path.resolve(backupDir, "core.asar.backup");
+  }
+
+  static cleanUp() {
+    const tempFolder = getTempFolder();
+    const tempPath = path.resolve(tempFolder, "discord-core");
+    if (fs.existsSync(tempPath)) {
+      fs.rmdirSync(tempPath, { recursive: true });
+    }
   }
 
   static findDiscordCore() {
@@ -157,7 +169,7 @@ export class DiscordPatcher {
   }
 
   static getMainScreen(corePath: string) {
-    const backup = path.resolve(corePath, "core.asar.backup");
+    const backup = DiscordPatcher.getBackUpPath();
     const tempFolder = getTempFolder();
     const backUpExists = fs.existsSync(backup);
     if (backUpExists) {
@@ -181,7 +193,7 @@ export class DiscordPatcher {
   }
 
   static backupCore(corePath: string) {
-    const backupPath = path.resolve(corePath, "core.asar.backup");
+    const backupPath = DiscordPatcher.getBackUpPath();
     const coreFilePath = path.resolve(corePath, "core.asar");
     const originalExists = fs.existsSync(coreFilePath);
     if (!originalExists) throw new Error("Could not find core.asar to backup");

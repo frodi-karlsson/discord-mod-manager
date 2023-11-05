@@ -3,7 +3,8 @@ import dts from "rollup-plugin-dts";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { exec } from "child_process";
+import { execSync } from "child_process";
+import uglify from "@lopatnov/rollup-plugin-uglify";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -32,7 +33,6 @@ if (isElectron) {
     scripts: {
       start: "electron .",
     },
-    devDependencies: projectPackageJson.devDependencies,
     dependencies: projectPackageJson.dependencies,
   });
 
@@ -43,10 +43,42 @@ if (isElectron) {
 
   console.log("Package json written");
 
-  // copy node_modules
-  const nodeModules = path.join(__dirname, "node_modules");
-  const buildNodeModules = path.join(__dirname, "build", "node_modules");
-  exec(`cp -r ${nodeModules} ${buildNodeModules}`, (err, stdout, stderr) => {
+  // // copy node_modules
+  // const nodeModules = path.join(__dirname, "node_modules");
+  // const buildNodeModules = path.join(__dirname, "build", "node_modules");
+  // if (!fs.existsSync(buildNodeModules)) {
+  //   fs.mkdirSync(buildNodeModules);
+  // }
+  // execSync(
+  //   `cp -r ${nodeModules} ${buildNodeModules}`,
+  //   (err, stdout, stderr) => {
+  //     if (err) {
+  //       console.error(err);
+  //       return;
+  //     }
+  //     console.log(stdout);
+  //     console.log(stderr);
+  //   }
+  // );
+
+  execSync(
+    `cd ${path.join(__dirname, "build")} && npm install --production`,
+    (err, stdout, stderr) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      console.log(stdout);
+      console.log(stderr);
+    }
+  );
+
+  const assets = path.join(__dirname, "assets");
+  const buildAssets = path.join(__dirname, "build", "assets");
+  if (!fs.existsSync(buildAssets)) {
+    fs.mkdirSync(buildAssets);
+  }
+  execSync(`cp -r ${assets} ${buildAssets}`, (err, stdout, stderr) => {
     if (err) {
       console.error(err);
       return;
@@ -55,11 +87,14 @@ if (isElectron) {
     console.log(stderr);
   });
 
-  console.log("Node modules copied");
+  console.log("Electron specific files copied");
 }
 
 const templates = path.join(__dirname, "templates");
-exec(`cp -r ${templates} ${build}`, (err, stdout, stderr) => {
+if (!fs.existsSync(templates)) {
+  fs.mkdirSync(templates);
+}
+execSync(`cp -r ${templates} ${build}`, (err, stdout, stderr) => {
   if (err) {
     console.error(err);
     return;
@@ -70,40 +105,46 @@ exec(`cp -r ${templates} ${build}`, (err, stdout, stderr) => {
 
 console.log("Templates copied");
 
-export default [
-  {
-    input: "src/types.d.ts",
+function getTypesConfig(input, output) {
+  return {
+    input,
     output: {
-      file: "build/types.d.ts",
+      file: output,
       format: "cjs",
     },
     plugins: [dts()],
-  },
-  {
-    input: "src/mod.ts",
+  };
+}
+
+function getElectronConfig(input, output) {
+  return {
+    input,
     output: {
-      file: "build/mod.cjs",
+      file: output,
       format: "cjs",
     },
-    plugins: [typescript()],
-  },
-  {
-    input: "src/discord-patcher.ts",
+    plugins: [typescript(), uglify()],
+  };
+}
+
+function getNPMPackageConfig(input, output, cjs = false) {
+  return {
+    input,
     output: {
-      file: "build/discord-patcher.cjs",
-      format: "cjs",
+      file: output,
+      format: cjs ? "cjs" : "esm",
     },
-    plugins: [typescript()],
-  },
+    plugins: cjs ? [typescript()] : [typescript(), uglify()],
+  };
+}
+
+const config = [
+  getTypesConfig("src/types.d.ts", "build/types.d.ts"),
+  getElectronConfig("src/mod.ts", "build/mod.cjs"),
+  getElectronConfig("src/discord-patcher.ts", "build/discord-patcher.cjs"),
+  getElectronConfig("src/app.ts", "build/app.cjs"),
   {
-    input: "src/app.ts",
-    output: {
-      file: "build/app.cjs",
-      format: "cjs",
-    },
-    plugins: [typescript()],
-  },
-  {
+    // just kept this as cjs for now
     input: "src/preload.js",
     output: {
       file: "build/preload.js",
@@ -111,37 +152,13 @@ export default [
     },
   },
   // this is the types installed by npm. First esm
-  {
-    input: "src/mod.ts",
-    output: {
-      file: "dist/mod.mjs",
-      format: "esm",
-    },
-    plugins: [typescript()],
-  },
-  {
-    input: "src/index.ts",
-    output: {
-      file: "dist/index.mjs",
-      format: "esm",
-    },
-    plugins: [typescript()],
-  },
+  getNPMPackageConfig("src/mod.ts", "dist/mod.mjs"),
+  getNPMPackageConfig("src/index.ts", "dist/index.mjs"),
   // then cjs
-  {
-    input: "src/mod.ts",
-    output: {
-      file: "dist/mod.cjs",
-      format: "cjs",
-    },
-    plugins: [typescript()],
-  },
-  {
-    input: "src/index.ts",
-    output: {
-      file: "dist/index.cjs",
-      format: "cjs",
-    },
-    plugins: [typescript()],
-  },
+  getNPMPackageConfig("src/mod.ts", "dist/mod.cjs", true),
+  getNPMPackageConfig("src/index.ts", "dist/index.cjs", true),
 ];
+
+console.log("Config created", config);
+
+export default config;

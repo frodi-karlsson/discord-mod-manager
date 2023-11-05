@@ -231,6 +231,7 @@ async function initApp() {
   });
 
   app.on("window-all-closed", () => {
+    DiscordPatcher.cleanUp();
     if (process.platform !== "darwin") app.quit();
   });
 

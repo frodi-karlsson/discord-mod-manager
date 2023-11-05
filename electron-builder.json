@@ -22,5 +22,16 @@
       "repo": "discord-mod-manager",
       "releaseType": "draft"
     }
-  ]
+  ],
+  "nsis": {
+    "allowToChangeInstallationDirectory": true,
+    "oneClick": false,
+    "perMachine": true,
+    "allowElevation": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true
+  },
+  "electronDownload": {
+    "mirror": "https://npm.taobao.org/mirrors/electron/"
+  }
 }
