@@ -100,7 +100,7 @@ export class DiscordPatcher {
     const tempFolder = DiscordPatcher.getTempFolder();
     const tempPath = path.resolve(tempFolder, "discord-core");
     if (fs.existsSync(tempPath)) {
-      fs.rmdirSync(tempPath, { recursive: true });
+      fs.rmSync(tempPath, { recursive: true, force: true });
     }
   }
 
