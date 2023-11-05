@@ -11,7 +11,8 @@
     "build": "npm run build:clean && npm run build:types && npm run build:build",
     "serve": "npm run build && npx electron build/app.cjs",
     "release:buildexe": "npx electron-builder -c electron-builder.json -w",
-    "release": "npx cross-env-shell IS_ELECTRON=true DEBUG=* \"npm run build\" && npm run release:buildexe"
+    "release": "npx cross-env-shell IS_ELECTRON=true DEBUG=* \"npm run build\" && npm run release:buildexe",
+    "prepublish": "npm run build"
   },
   "author": "Fróði Karlsson <frodikarlsson@gmail.com>",
   "repository": {
@@ -47,5 +48,8 @@
       "require": "./dist/index.cjs"
     }
   },
-  "types": "./dist/index.d.ts"
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ]
 }
