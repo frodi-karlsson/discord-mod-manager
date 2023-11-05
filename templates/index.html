@@ -6,19 +6,41 @@
   </head>
   <body>
     <style>
+      html, body {
+        margin: 0;
+        padding: 5px 0;
+      }
+
+      ::-webkit-scrollbar {
+        width: 5px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #36393f;
+        border-radius: 2.5px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #7289da;
+      }
+
       body {
         background-color: #36393f;
         color: #fff;
         font-family: sans-serif;
+        margin: 0;
+        padding: 5px 0;
       }
 
       h1, h2 {
         text-align: center;
+        margin: 0;
       }
 
       #buttons {
         width: 100%;
         margin: 0 auto;
+        padding: 5% 0;
         display: flex;
         flex-direction: column;
         justify-content: space-evenly;
@@ -30,12 +52,11 @@
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
-        width: calc(min(100%, 600px));
+        width: min(100%, 555px);
         margin: 0 auto;
       }
 
       .button p {
-        text-align: center;
         color: rgba(205, 205, 205, 0.8);
         font-size: 0.8em;
         width: 200px;
@@ -75,7 +96,25 @@
       #mod-list-top li span {
         font-weight: bold;
         color: rgba(205, 205, 205, 0.8);
-        margin-bottom: 10px;
+        width: 100%;
+        padding: 10px;
+      }
+
+      #mods {
+        padding: 20px 10px 0;
+        background-color: rgba(0, 0, 0, 0.1);
+      }
+
+      #mod-list {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        max-height: 40%;
+        overflow-y: scroll;
+      }
+
+      #mod-list p {
+        margin: 0;
       }
 
       #mods ul {
@@ -85,7 +124,6 @@
         justify-content: space-between;
         align-items: flex-start;
         width: 100%;
-        margin: 0;
         padding: 0;
 
       }
@@ -94,17 +132,27 @@
         display: flex;
         flex-direction: row;
         width: 100%;
+        padding: 10px 0;
       }
 
       #mods ul li > *{
         width: 100%;
+        text-align: center;
+      }
+
+      #mods ul li:nth-child(even) {
+        background-color: rgba(0, 0, 0, 0.1);
+      }
+
+      #download-from-repo {
+        margin-right: 4px;
       }
     </style>
     <h1>Discord Mod Manager</h1>
     <div id="buttons">
       <div class="button">
-        <p>Refreshes the mod list</p>
         <button id="refresh">Refresh</button>
+        <p>Refreshes the mod list</p>
         <script type="text/javascript">
           const refresh = document.getElementById("refresh");
           refresh.addEventListener("click", () => {
@@ -113,8 +161,8 @@
         </script>
       </div>
       <div class="button">
-        <p>Patches Discord</p>
         <button id="patch">Patch</button>
+        <p>Patches Discord</p>
         <script type="text/javascript">
           const patch = document.getElementById("patch");
           patch.addEventListener("click", () => {
@@ -123,8 +171,8 @@
         </script>
       </div>
       <div class="button">
-        <p>Restores Discord to vanilla</p>
         <button id="restore">Restore</button>
+        <p>Restores Discord to vanilla</p>
         <script type="text/javascript">
           const restore = document.getElementById("restore");
           restore.addEventListener("click", () => {
@@ -133,8 +181,8 @@
         </script>
       </div>
       <div class="button">
-        <p>Installs mod from folder</p>
         <input id="install-from-folder" type="file" webkitdirectory = "true" directory />
+        <p>Installs mod from folder</p>
         <script type="text/javascript">
           const installFromFolder = document.getElementById("install-from-folder");
           installFromFolder.addEventListener("change", (event) => {
@@ -147,9 +195,8 @@
         </script>
       </div>
       <div class="button">
-        <p>Installs mod from repo</p>
       <div id="install-from-repo">
-        <input id="download-from-repo" type="text" />
+        <input id="download-from-repo" type="text" placeholder="Github repository" />
         <button id="install-from-repo">Install</button>
         <script type="text/javascript">
           const installFromRepo = document.getElementById("install-from-repo");
@@ -160,6 +207,7 @@
           });
         </script>
       </div>
+      <p>Installs mod from git repository</p>
     </div>
     </div>
     <div id="mods">

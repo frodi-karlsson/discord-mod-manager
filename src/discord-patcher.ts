@@ -188,7 +188,10 @@ export class DiscordPatcher {
     const backupExists = fs.existsSync(backupPath);
     if (!backupExists) {
       console.log("backing up core.asar from", coreFilePath, "to", backupPath);
-      execSync(`cp ${coreFilePath} ${backupPath}`); // fs doesn't play well with asar
+      const noAsarValue = process.noAsar;
+      process.noAsar = true;
+      fs.copyFileSync(coreFilePath, backupPath);
+      process.noAsar = noAsarValue;
     }
   }
 
