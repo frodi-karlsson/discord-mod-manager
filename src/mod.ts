@@ -1,6 +1,6 @@
 import { BrowserWindow } from "electron";
 
-type Event =
+export type ElectronEvent =
   | "did-finish-load"
   | "did-fail-load"
   | "did-fail-provisional-load"
@@ -61,20 +61,20 @@ type Event =
   | "preferred-size-changed"
   | "frame-created";
 
-type EventCallback = (mainWindow: BrowserWindow) => void;
+export type WindowEventCallback = (mainWindow: BrowserWindow) => void;
 
-type EventJSON = {
-  [key in Event]?: {
+export type EventJSON = {
+  [key in ElectronEvent]?: {
     on: string[];
     once: string[];
   };
 };
 
-type WindowModificationsJSON = {
+export type WindowModificationsJSON = {
   windowModifications?: string[];
 };
 
-type CBJson = {
+export type CBJson = {
   events: EventJSON;
 } & WindowModificationsJSON;
 
@@ -103,9 +103,9 @@ export type IncludeListMod = ModBase & {
 
 export type CombinedMod = ModJSON & IncludeListMod;
 
-interface EventWithCallback {
-  event: Event;
-  callback: EventCallback;
+export interface ElectronEventWithCallback {
+  event: ElectronEvent;
+  callback: WindowEventCallback;
 }
 
 /**
@@ -120,8 +120,8 @@ interface EventWithCallback {
  */
 export class Mod {
   id: string;
-  onList: EventWithCallback[] = [];
-  onceList: EventWithCallback[] = [];
+  onList: ElectronEventWithCallback[] = [];
+  onceList: ElectronEventWithCallback[] = [];
   windowModifications: ((mainWindow: BrowserWindow) => void)[] = [];
   dependencies: ModSkeleton[];
   version: string;
@@ -148,11 +148,11 @@ export class Mod {
     this.homepage = homepage;
   }
 
-  on(event: Event, callback: EventCallback) {
+  on(event: ElectronEvent, callback: WindowEventCallback) {
     this.onList.push({ event, callback });
   }
 
-  once(event: Event, callback: EventCallback) {
+  once(event: ElectronEvent, callback: WindowEventCallback) {
     this.onceList.push({ event, callback });
   }
 
