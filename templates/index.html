@@ -197,14 +197,14 @@
       <div class="button">
       <div id="install-from-repo">
         <input id="download-from-repo" type="text" placeholder="Github repository" />
-        <button id="install-from-repo">Install</button>
+        <button id="install-from-repo" onclick="installFromRepo()">Install</button>
         <script type="text/javascript">
-          const installFromRepo = document.getElementById("install-from-repo");
-          installFromRepo.addEventListener("click", () => {
-            window.electron.api.send("download", {
-              repo: document.getElementById("download-from-repo").value,
-            });
-          });
+          function installFromRepo() {
+            const input = document.getElementById("download-from-repo");
+            const link = input.value;
+            if (!link || link === "") return alert("Please enter a link");
+            window.electron.api.send("download", link);
+          }
         </script>
       </div>
       <p>Installs mod from git repository</p>

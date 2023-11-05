@@ -47,6 +47,8 @@ fs.writeFileSync(modFile, JSON.stringify(exampleMod.getJSON(), null, 2));
 
 This new mod can then be installed by the mod manager. If you keep your mod in a git repository, you can also install it directly from there as long as mod.json is in the root of the repository.
 
+Here is a real mod as an example: [frodi-karlsson-modpack](https://github.com/frodi-karlsson/frodi-karlsson-modpack)
+
 # Development
 
 The mod manager is built using electron. I've intentionally kept the dependencies to a minimum, so there's no react or anything like that. The UI is built using vanilla HTML, CSS and JS.

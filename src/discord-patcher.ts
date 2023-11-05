@@ -18,21 +18,6 @@ class Graph {
   }
 }
 
-function getTempFolder() {
-  let tempFolder;
-  if (process.platform === "win32") {
-    tempFolder =
-      process.env.TEMP ??
-      process.env.TMP ??
-      (process.env.SystemRoot ?? process.env.windir) + "\\temp";
-  } else {
-    tempFolder =
-      process.env.TMPDIR ?? process.env.TMP ?? process.env.TEMP ?? "/tmp";
-  }
-  if (!tempFolder) throw new Error("Could not find temp folder");
-  return tempFolder;
-}
-
 export class DiscordPatcher {
   private modJsons: ModJSON[];
   constructor(...modJsons: ModJSON[]) {
@@ -112,11 +97,26 @@ export class DiscordPatcher {
   }
 
   static cleanUp() {
-    const tempFolder = getTempFolder();
+    const tempFolder = DiscordPatcher.getTempFolder();
     const tempPath = path.resolve(tempFolder, "discord-core");
     if (fs.existsSync(tempPath)) {
       fs.rmdirSync(tempPath, { recursive: true });
     }
+  }
+
+  static getTempFolder() {
+    let tempFolder;
+    if (process.platform === "win32") {
+      tempFolder =
+        process.env.TEMP ??
+        process.env.TMP ??
+        (process.env.SystemRoot ?? process.env.windir) + "\\temp";
+    } else {
+      tempFolder =
+        process.env.TMPDIR ?? process.env.TMP ?? process.env.TEMP ?? "/tmp";
+    }
+    if (!tempFolder) throw new Error("Could not find temp folder");
+    return tempFolder;
   }
 
   static findDiscordCore() {
@@ -170,7 +170,7 @@ export class DiscordPatcher {
 
   static getMainScreen(corePath: string) {
     const backup = DiscordPatcher.getBackUpPath();
-    const tempFolder = getTempFolder();
+    const tempFolder = DiscordPatcher.getTempFolder();
     const backUpExists = fs.existsSync(backup);
     if (backUpExists) {
       console.log("using backup");
@@ -208,7 +208,7 @@ export class DiscordPatcher {
   }
 
   static writeMainScreen(corePath: string, mainScreen: string, dryRun = false) {
-    const tempFolder = getTempFolder();
+    const tempFolder = DiscordPatcher.getTempFolder();
     const tempPath = path.resolve(tempFolder, "discord-core");
     console.log("writing mainScreen.js at", tempPath);
     fs.writeFileSync(

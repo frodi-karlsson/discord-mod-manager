@@ -1,18 +1,16 @@
 {
+  "extends": "./base.tsconfig.json",
   "compilerOptions": {
-    "composite": true,
-    "target": "es2016",
-    "lib": ["es6"],
-    "module": "NodeNext",
     "rootDir": "src",
+    "outDir": "build",
+    "rootDirs": ["src"],
     "resolveJsonModule": true,
     "allowJs": true,
-    "outDir": "build",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "rootDirs": ["src"],
     "noImplicitAny": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "composite": true,
   }
 }

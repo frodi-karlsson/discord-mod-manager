@@ -3,7 +3,8 @@ import { DiscordPatcher } from "./discord-patcher.js";
 import { CombinedMod, Dependency, IncludeListMod, ModJSON } from "./mod.js";
 import * as fs from "fs";
 import path from "path";
-import { download } from "download-git-repo";
+import https from "https";
+import zip from "adm-zip";
 
 function initializeModFolder() {
   let modFolder;
@@ -46,13 +47,18 @@ function initializeDownloadFolder(modFolder: string) {
   return downloadFolder;
 }
 
-function installMod(modJson: ModJSON, modFolder: string) {
-  const includeList = initializeModIncludeList(modFolder);
-  const includeListContents = fs.readFileSync(includeList, {
-    encoding: "utf-8",
-  });
-  const includeListJson: IncludeListMod[] = JSON.parse(includeListContents);
-  const includeMod = includeListJson.find((mod) => mod.id === modJson.id);
+function installMod(modJson: ModJSON, modFolder: string): boolean {
+  const downloadFolder = initializeDownloadFolder(modFolder);
+  const duplicateMod = fs.existsSync(path.resolve(downloadFolder, modJson.id));
+  if (duplicateMod) {
+    mainWindow?.webContents.send(
+      "error",
+      `Mod ${modJson.id} is already installed`
+    );
+    return false;
+  }
+  const includeList = getIncludeList(modFolder);
+  const includeMod = includeList.find((mod) => mod.id === modJson.id);
   if (!includeMod) {
     const includeMod: IncludeListMod = {
       id: modJson.id,
@@ -60,35 +66,142 @@ function installMod(modJson: ModJSON, modFolder: string) {
       version: modJson.version,
       enabled: true,
     };
-    includeListJson.push(includeMod);
-    fs.writeFileSync(includeList, JSON.stringify(includeListJson));
+    includeList.push(includeMod);
+    const includeListPath = initializeModIncludeList(modFolder);
+    fs.writeFileSync(includeListPath, JSON.stringify(includeList));
   }
-  const downloadFolder = initializeDownloadFolder(modFolder);
   const modPath = path.resolve(downloadFolder, modJson.id);
   if (!fs.existsSync(modPath)) fs.mkdirSync(modPath);
   const modJsonPath = path.resolve(modPath, "mod.json");
   fs.writeFileSync(modJsonPath, JSON.stringify(modJson));
+  return true;
+}
+
+async function download(url: string, cb: (data: Buffer) => void) {
+  console.log(`Downloading ${url}...`);
+  const promise = new Promise<void>((resolve, reject) => {
+    https.get(url, (response) => {
+      const statusCode = response.statusCode;
+      if (!statusCode) {
+        reject(`Could not find status code for ${url}`);
+        return;
+      }
+      if ([301, 302].includes(statusCode)) {
+        const location = response.headers.location;
+        if (!location) {
+          reject(`Could not find location header for ${url}`);
+          return;
+        }
+        return download(location, cb).then(resolve).catch(reject);
+      } else if (statusCode !== 200) {
+        return reject(`Could not download ${url}: ${statusCode}`);
+      }
+      const data: Buffer[] = [];
+      response.on("data", (chunk) => {
+        data.push(chunk);
+      });
+      response.on("end", () => {
+        const buffer = Buffer.concat(data);
+        cb(buffer);
+        resolve(void 0);
+      });
+    });
+  });
+  return promise;
 }
 
 async function installFromRepository(
   repository: string,
   downloadFolder: string
-) {
-  const temp = path.resolve(downloadFolder, "temp");
-  if (fs.existsSync(temp)) {
-    console.log(`Repository ${repository} already exists`);
-    return;
+): Promise<CombinedMod | null> {
+  console.log(`Installing repository ${repository}...`);
+  const fragments = repository.split("/");
+  const githubIndex = fragments.findIndex(
+    (fragment) => fragment === "github.com"
+  );
+  if (githubIndex === -1) {
+    mainWindow?.webContents.send(
+      "error",
+      `Invalid repository ${repository}, must be on GitHub`
+    );
+    return null;
   }
-  await download(repository, temp, { clone: true });
-  const repoName = repository.split("/").pop();
-  if (!repoName) throw new Error("Could not find repository name");
-  const repoPath = path.resolve(temp, repoName);
+  const userIndex = githubIndex + 1;
+  const repoIndex = githubIndex + 2;
+  if (fragments.length < repoIndex + 1) {
+    mainWindow?.webContents.send(
+      "error",
+      `Invalid repository ${repository}, must follow https://github.com/{user}/{repo} or https://github.com/{user}/{repo}/archive/refs/heads/{branch}.zip`
+    );
+    return null;
+  }
+  if (fragments.length === repoIndex + 1) {
+    repository =
+      "https://github.com/" +
+      fragments[userIndex] +
+      "/" +
+      fragments[repoIndex] +
+      "/archive/refs/heads/main.zip";
+  }
+  const repoPath = path.resolve(downloadFolder, fragments[repoIndex]);
+  if (fs.existsSync(repoPath)) {
+    console.log(`Mod ${fragments[repoIndex]} already exists`);
+    return null;
+  }
+  fs.mkdirSync(repoPath);
+  let downloadFailed = false;
+  await download(repository, (data) => {
+    const zipPath = path.resolve(repoPath, "repository.zip");
+    fs.writeFileSync(zipPath, data);
+  }).catch((e) => {
+    mainWindow?.webContents.send(
+      "error",
+      `Could not download archive ${repository}: ${e}`
+    );
+    console.error(e);
+    downloadFailed = true;
+  });
+  if (downloadFailed) return null;
+  console.log(`Extracting archive ${repository}...`);
+  const admZip = new zip(path.resolve(repoPath, "repository.zip"));
+  console.log(
+    "entries",
+    admZip.getEntries().map((entry) => entry.entryName)
+  );
+  const modJsonEntry = admZip
+    .getEntries()
+    .find(
+      (entry) =>
+        entry.entryName.endsWith("mod.json") &&
+        entry.entryName.split("/").length === 2
+    );
+  if (!modJsonEntry) {
+    mainWindow?.webContents.send(
+      "error",
+      `Could not find mod.json in archive ${repository}`
+    );
+    return null;
+  }
+  const extractSuccess = admZip.extractEntryTo(
+    modJsonEntry.entryName,
+    repoPath,
+    false,
+    true
+  );
+  if (!extractSuccess) {
+    mainWindow?.webContents.send(
+      "error",
+      `Could not extract repository ${repository}`
+    );
+    return null;
+  }
   const modJsonPath = path.resolve(repoPath, "mod.json");
-  if (!fs.existsSync(modJsonPath))
-    throw new Error(`Could not find mod.json in ${repository}`);
   const modJsonContents = fs.readFileSync(modJsonPath, { encoding: "utf-8" });
   const modJson: ModJSON = JSON.parse(modJsonContents);
-  installMod(modJson, downloadFolder);
+  fs.rmSync(path.resolve(repoPath), { recursive: true });
+  const modFolder = initializeModFolder();
+  const installed = installMod(modJson, modFolder);
+  if (!installed) return null;
   const combinedMod: CombinedMod = { ...modJson, enabled: true };
   return combinedMod;
 }
@@ -267,9 +380,19 @@ async function initApp() {
       return;
     }
     const downloadFolder = initializeDownloadFolder(modFolder);
-    const modPath = path.resolve(downloadFolder, mod.id);
-    fs.rmdirSync(modPath, { recursive: true });
+    if (fs.existsSync(path.resolve(downloadFolder, mod.id))) {
+      fs.rmSync(path.resolve(downloadFolder, mod.id), { recursive: true });
+    } else {
+      console.warn(`Could not find ${mod.id} in ${downloadFolder}`);
+    }
     const modIndex = mods.findIndex((mod) => mod.id === obj.id);
+    if (modIndex === -1) {
+      mainWindow?.webContents.send(
+        "error",
+        `Could not find mod ${obj.id} in mods`
+      );
+      return;
+    }
     mods.splice(modIndex, 1);
     changeIncludeList(mods, modFolder);
     mainWindow?.webContents.send("mods", mods);
@@ -303,13 +426,14 @@ async function initApp() {
     mainWindow?.webContents.send("mods", mods);
   });
 
-  ipcMain.on("download", async (event, obj: { repository: string }) => {
-    console.log("download", obj.repository);
-    const mod = await installFromRepository(obj.repository, modFolder);
+  ipcMain.on("download", async (event, repo: string) => {
+    console.log("download", repo);
+    const downloadFolder = initializeDownloadFolder(modFolder);
+    const mod = await installFromRepository(repo, downloadFolder);
     if (!mod) {
       mainWindow?.webContents.send(
         "error",
-        `Repository ${obj.repository} already exists`
+        `Repository ${repo} failed to install`
       );
       return;
     }
@@ -324,10 +448,12 @@ async function initApp() {
       throw new Error(`Could not find mod.json in ${obj.path}`);
     const modJsonContents = fs.readFileSync(modJsonPath, { encoding: "utf-8" });
     const modJson: ModJSON = JSON.parse(modJsonContents);
-    installMod(modJson, modFolder);
-    const combinedMod: CombinedMod = { ...modJson, enabled: true };
-    mods.push(combinedMod);
-    changeIncludeList(mods, modFolder);
+    const wasInstalled = installMod(modJson, modFolder);
+    if (wasInstalled) {
+      const combinedMod: CombinedMod = { ...modJson, enabled: true };
+      mods.push(combinedMod);
+      changeIncludeList(mods, modFolder);
+    }
     mainWindow?.webContents.send("mods", mods);
   });
 }

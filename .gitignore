@@ -3,7 +3,7 @@
 # Build files
 **/build/
 dist
-tsconfig.tsbuildinfo
+*.tsbuildinfo
 release
 
 # Rollup files

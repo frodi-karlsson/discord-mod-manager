@@ -1,12 +1,12 @@
 {
   "name": "discord-modding-framework",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "An attempt at a flexible framework for modifying the discord client",
   "main": "dist/app.cjs",
   "scripts": {
     "dev": "npx nodemon",
     "build:clean": "npx rimraf build && npx rimraf dist && npx rimraf release",
-    "build:types": "npx tsc src/index.ts --emitDeclarationOnly --declaration --declarationMap --outDir ./dist",
+    "build:types": "npx tsc --project npm.package.tsconfig.json",
     "build:build": "rollup -c",
     "build": "npm run build:clean && npm run build:types && npm run build:build",
     "serve": "npm run build && npx electron build/app.cjs",
@@ -24,7 +24,9 @@
     "@lopatnov/rollup-plugin-uglify": "^2.1.5",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.5",
+    "@types/adm-zip": "^0.5.3",
     "@types/node": "^20.8.10",
+    "cross-env": "^7.0.3",
     "electron-builder": "^24.6.4",
     "nodemon": "^3.0.1",
     "rimraf": "^5.0.5",
@@ -32,11 +34,11 @@
     "rollup-plugin-dts": "^6.1.0",
     "ts-node": "^10.9.1",
     "tslib": "^2.6.2",
-    "typescript": "^5.2.2",
-    "cross-env": "^7.0.3"
+    "typescript": "^5.2.2"
   },
   "dependencies": {
     "@electron/asar": "^3.2.7",
+    "adm-zip": "^0.5.10",
     "dotenv": "^16.3.1",
     "download-git-repo": "^3.0.2",
     "electron": "^27.0.3"

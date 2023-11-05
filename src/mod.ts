@@ -1,4 +1,6 @@
 import { BrowserWindow } from "electron";
+import { readFileSync } from "fs";
+import ts from "typescript";
 
 export type ElectronEvent =
   | "did-finish-load"
@@ -146,6 +148,38 @@ export class Mod {
     this.author = author;
     this.description = description;
     this.homepage = homepage;
+  }
+
+  /**
+   * Allows you to create a callback from a file path.
+   * Anything in this file will be executed when the event is fired.
+   */
+  static getCallbackFromFile(
+    path: string,
+    options?: ts.CompilerOptions
+  ): WindowEventCallback {
+    const str = readFileSync(path, "utf-8");
+    const standardOptions: ts.CompilerOptions = {
+      target: ts.ScriptTarget.ESNext,
+      module: ts.ModuleKind.CommonJS,
+      allowJs: true,
+    };
+    const compilerOptions = options
+      ? Object.assign(standardOptions, options)
+      : standardOptions;
+    const func = ts.transpile(
+      `(mainWindow) => {
+      mainWindow.webContents.executeJavaScript(\`
+      ${str
+        .replaceAll("\\", "\\\\")
+        .replaceAll("`", "\\`")
+        .replaceAll("$", "\\$")}
+      \`);
+    }`,
+      compilerOptions
+    );
+    const cb = new Function(`return ${func}`)();
+    return cb;
   }
 
   on(event: ElectronEvent, callback: WindowEventCallback) {

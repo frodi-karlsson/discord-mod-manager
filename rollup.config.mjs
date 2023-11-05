@@ -138,6 +138,15 @@ function getElectronConfig(input, output) {
       format: "cjs",
     },
     plugins: [typescript(), uglify()],
+    external: [
+      "electron",
+      "fs",
+      "path",
+      "https",
+      "adm-zip",
+      "@electron/asar",
+      "typescript",
+    ],
   };
 }
 
@@ -149,6 +158,15 @@ function getNPMPackageConfig(input, output, cjs = false) {
       format: cjs ? "cjs" : "esm",
     },
     plugins: cjs ? [typescript()] : [typescript(), uglify()],
+    external: [
+      "electron",
+      "fs",
+      "path",
+      "https",
+      "adm-zip",
+      "@electron/asar",
+      "typescript",
+    ],
   };
 }
 
