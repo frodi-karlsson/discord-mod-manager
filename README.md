@@ -51,10 +51,30 @@ import fs from 'fs';
 import path from 'path';
 
 // mod constructor takes the following arguments:
-// (id: string, dependencies?: Dependency[], version?: string, repository?: string, author?: string, description?: string, homepage?: string);
-// where dependencies are objects with an id, version and optional repository
+// obj: {id: string, dependencies?: Dependency[], version?: string, repository?: string, author?: string, description?: string, homepage?: string, fullDescription?: string, config?: ConfigurationField[]}
+// where dependencies are objects with an id, version and optional repository and
+// configuration fields are objects with a name, description, type and optional default value.
+// the type can be one of 'boolean', 'string', 'number'.
 
-const exampleMod = new Mod('example-mod', [], '1.0.0', undefined, 'Frodi', 'An example mod');
+const modOpts = {
+  id: 'example-mod',
+  version: '1.0.0',
+  config: [
+    {
+      name: 'enabled',
+      description: 'Whether the mod is enabled',
+      type: 'boolean',
+      defaultValue: true
+    },
+    {
+      name: 'message',
+      description: 'The message to log to the console',
+      type: 'string',
+      defaultValue: 'Hello world!'
+    }
+  ]
+}
+const exampleMod = new Mod(modOpts);
 exampleMod.on('dom-ready', (mainWindow) => {
   // do stuff with the main window
 });
@@ -69,13 +89,35 @@ exampleMod.once('dom-ready', (mainWindow, configuration) => {
   }
   // Beware! This is not fully tested, but it is in the works.
 });
-const modFolder = path.join(__dirname, 'example-mod');
-const modFile = path.join(modFolder, 'mod.json');
-if (!fs.existsSync(modFolder)) fs.mkdirSync(modFolder);
+// There is more stuff yet, hang in there:
+exampleMod.on('ready', Mod.getCallbackFromFile(path.join(__dirname, 'ready.js'))); // this will run the code in ready.js in the window when the app is ready
+const modFile = path.join(__dirname 'mod.json');
+// this will create a mod.json file in the root of your project. Perfect for the install from repository feature of the mod manager.
 fs.writeFileSync(modFile, JSON.stringify(exampleMod.getJSON(), null, 2));
 ```
 
-This new mod can then be installed by the mod manager. If you keep your mod in a git repository, you can also install it directly from there as long as mod.json is in the root of the repository.
+Let's check out "ready.js" as well:
+
+```js
+const msg = window.modConfig['message'];
+// make sure not to try ddoing something like this:
+// if (!msg) return;
+// because the code is run in the window where it cannot return.
+// instead, do something like this:
+function run() {
+  if (!msg) return;
+  console.log(msg);
+}
+run();
+
+// or this:
+if (msg) {
+  console.log(msg);
+}
+```
+As you can see, it's not very complicated.
+
+This new mod can then be installed by the mod manager. If you keep your mod in a git repository, you can install it directly from there as long as mod.json is in the root of the repository, otherwise you can navigate to the folder containing mod.json and install it from there using the file picker dialog.
 
 Here is a real mod as an example that uses configs: [frodi-karlsson-modpack](https://github.com/frodi-karlsson/frodi-karlsson-modpack)
 
