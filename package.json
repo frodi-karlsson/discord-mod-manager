@@ -6,11 +6,11 @@
   "scripts": {
     "dev": "npx nodemon",
     "build:clean": "npx rimraf build && npx rimraf dist && npx rimraf release",
-    "build:types": "npx tsc --project npm.package.tsconfig.json",
-    "build:build": "rollup -c",
+    "build:types": "npx tsc --project buildconfigs/npm.package.tsconfig.json",
+    "build:build": "rollup -c buildconfigs/rollup.config.mjs",
     "build": "npm run build:clean && npm run build:types && npm run build:build",
-    "serve": "npm run build && npx electron build/app.cjs",
-    "release:buildexe": "npx electron-builder -c electron-builder.json -w",
+    "serve": "npm run build && npx electron build/app/app.cjs",
+    "release:buildexe": "npx electron-builder -c buildconfigs/electron-builder.json -w",
     "release": "npx cross-env-shell IS_ELECTRON=true DEBUG=* \"npm run build\" && npm run release:buildexe",
     "prepublish": "npm run build"
   },

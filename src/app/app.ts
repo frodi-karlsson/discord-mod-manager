@@ -1,6 +1,11 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import { DiscordPatcher } from "./discord-patcher.js";
-import { CombinedMod, Dependency, IncludeListMod, ModJSON } from "./mod.js";
+import {
+  CombinedMod,
+  Dependency,
+  IncludeListMod,
+  ModJSON,
+} from "../mod/mod.js";
 import * as fs from "fs";
 import path from "path";
 import https from "https";
@@ -305,7 +310,7 @@ function createWindow() {
     },
   });
 
-  win.loadFile(path.resolve(__dirname, "templates/index.html"));
+  win.loadFile(path.resolve(__dirname, "../templates/index.html"));
   mainWindow = win;
 }
 

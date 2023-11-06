@@ -1,7 +1,7 @@
 import fs from "fs";
 import { createPackage, extractAll } from "@electron/asar";
 import path from "path";
-import { ModJSON } from "./mod.js";
+import { ModJSON } from "../mod/mod.js";
 
 class Graph {
   adjacencyList: { [key: string]: string[] };

@@ -1,5 +1,5 @@
 {
-  "extends": "./base.tsconfig.json",
+  "extends": "./buildconfigs/base.tsconfig.json",
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "build",
@@ -10,7 +10,6 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noImplicitAny": true,
-    "skipLibCheck": true,
     "composite": true,
   }
 }

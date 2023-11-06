@@ -10,7 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 console.log("Building for electron:", process.env.IS_ELECTRON === "true");
 
-const build = path.join(__dirname, "build");
+const build = path.join(__dirname, "../build");
 if (!fs.existsSync(build)) {
   fs.mkdirSync(build);
 }
@@ -24,7 +24,7 @@ if (isElectron) {
     fs.readFileSync(path.join(__dirname, "package.json"), "utf-8")
   );
   const packageJson = {
-    main: "app.cjs",
+    main: "app/app.cjs",
     description: "A mod manager for discord",
     author: projectPackageJson.author,
     version: projectPackageJson.version,
@@ -47,48 +47,21 @@ if (isElectron) {
 
   const packageJsonString = JSON.stringify(packageJson, null, 2);
 
-  if (!fs.existsSync(path.join(__dirname, "build"))) {
-    fs.mkdirSync(path.join(__dirname, "build"));
-  }
-  fs.writeFileSync(
-    path.join(__dirname, "build", "package.json"),
-    packageJsonString
-  );
+  fs.writeFileSync(path.join(build, "package.json"), packageJsonString);
 
   console.log("Package json written");
 
-  // // copy node_modules
-  // const nodeModules = path.join(__dirname, "node_modules");
-  // const buildNodeModules = path.join(__dirname, "build", "node_modules");
-  // if (!fs.existsSync(buildNodeModules)) {
-  //   fs.mkdirSync(buildNodeModules);
-  // }
-  // execSync(
-  //   `cp -r ${nodeModules} ${buildNodeModules}`,
-  //   (err, stdout, stderr) => {
-  //     if (err) {
-  //       console.error(err);
-  //       return;
-  //     }
-  //     console.log(stdout);
-  //     console.log(stderr);
-  //   }
-  // );
-
-  execSync(
-    `cd ${path.join(__dirname, "build")} && npm install --production`,
-    (err, stdout, stderr) => {
-      if (err) {
-        console.error(err);
-        return;
-      }
-      console.log(stdout);
-      console.log(stderr);
+  execSync(`cd ${build} && npm install --production`, (err, stdout, stderr) => {
+    if (err) {
+      console.error(err);
+      return;
     }
-  );
+    console.log(stdout);
+    console.log(stderr);
+  });
 
   const assets = path.join(__dirname, "assets");
-  const buildAssets = path.join(__dirname, "build", "assets");
+  const buildAssets = path.join(build, "assets");
   if (!fs.existsSync(buildAssets)) {
     fs.mkdirSync(buildAssets);
   }
@@ -104,7 +77,7 @@ if (isElectron) {
   console.log("Electron specific files copied");
 }
 
-const templates = path.join(__dirname, "templates");
+const templates = path.join(__dirname, "../templates");
 if (!fs.existsSync(templates)) {
   fs.mkdirSync(templates);
 }
@@ -171,23 +144,26 @@ function getNPMPackageConfig(input, output, cjs = false) {
 }
 
 const config = [
+  // this is the electron app
   getTypesConfig("src/types.d.ts", "build/types.d.ts"),
-  getElectronConfig("src/mod.ts", "build/mod.cjs"),
-  getElectronConfig("src/discord-patcher.ts", "build/discord-patcher.cjs"),
-  getElectronConfig("src/app.ts", "build/app.cjs"),
+  getElectronConfig("src/mod/mod.ts", "build/app/mod.cjs"),
+  getElectronConfig(
+    "src/app/discord-patcher.ts",
+    "build/app/discord-patcher.cjs"
+  ),
+  getElectronConfig("src/app/app.ts", "build/app/app.cjs"),
   {
-    // just kept this as cjs for now
-    input: "src/preload.js",
+    input: "src/app/preload.js",
     output: {
-      file: "build/preload.js",
+      file: "build/app/preload.js",
       format: "cjs",
     },
   },
   // this is the types installed by npm. First esm
-  getNPMPackageConfig("src/mod.ts", "dist/mod.mjs"),
+  getNPMPackageConfig("src/mod/mod.ts", "dist/mod/mod.mjs"),
   getNPMPackageConfig("src/index.ts", "dist/index.mjs"),
   // then cjs
-  getNPMPackageConfig("src/mod.ts", "dist/mod.cjs", true),
+  getNPMPackageConfig("src/mod/mod.ts", "dist/mod/mod.cjs", true),
   getNPMPackageConfig("src/index.ts", "dist/index.cjs", true),
 ];
 
