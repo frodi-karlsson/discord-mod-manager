@@ -33,17 +33,8 @@ if (isElectron) {
     scripts: {
       start: "electron .",
     },
-    dependencies: {},
-    devDependencies: {},
+    dependencies: projectPackageJson.dependencies,
   };
-
-  packageJson.devDependencies["electron"] =
-    projectPackageJson.dependencies["electron"];
-  Object.keys(projectPackageJson.dependencies).forEach((key) => {
-    if (key !== "electron") {
-      packageJson.dependencies[key] = projectPackageJson.dependencies[key];
-    }
-  });
 
   const packageJsonString = JSON.stringify(packageJson, null, 2);
 

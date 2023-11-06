@@ -11,8 +11,9 @@
     "build": "npm run build:clean && npm run build:types && npm run build:build",
     "serve": "npm run build && npx electron build/app/app.cjs",
     "release:buildexe": "npx electron-builder -c buildconfigs/electron-builder.json -w",
-    "release": "npx cross-env-shell IS_ELECTRON=true DEBUG=* \"npm run build\" && npm run release:buildexe",
-    "prepublish": "npm run build"
+    "release:commands": "npx cross-env-shell IS_ELECTRON=true \"npm run build && npm run release:buildexe\"",
+    "release": "npx install-subset r run -a \"release:commands\" -i \"electron\"",
+    "prepare": "npm run build"
   },
   "author": "Fróði Karlsson <frodikarlsson@gmail.com>",
   "repository": {
@@ -21,29 +22,30 @@
   },
   "license": "ISC",
   "devDependencies": {
+    "@electron/asar": "^3.2.7",
     "@lopatnov/rollup-plugin-uglify": "^2.1.5",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.5",
     "@types/adm-zip": "^0.5.3",
     "@types/node": "^20.8.10",
     "@types/temp": "^0.9.3",
+    "adm-zip": "^0.5.10",
     "cross-env": "^7.0.3",
+    "dotenv": "^16.3.1",
+    "download-git-repo": "^3.0.2",
     "electron-builder": "^24.6.4",
+    "install-subset": "github:frodi-karlsson/install-subset-dmm",
     "nodemon": "^3.0.1",
     "rimraf": "^5.0.5",
     "rollup": "^4.3.0",
     "rollup-plugin-dts": "^6.1.0",
+    "temp": "^0.9.4",
     "ts-node": "^10.9.1",
     "tslib": "^2.6.2",
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@electron/asar": "^3.2.7",
-    "adm-zip": "^0.5.10",
-    "dotenv": "^16.3.1",
-    "download-git-repo": "^3.0.2",
-    "electron": "^27.0.3",
-    "temp": "^0.9.4"
+    "electron": "^27.0.3"
   },
   "type": "module",
   "exports": {
@@ -55,5 +57,16 @@
   "types": "./dist/index.d.ts",
   "files": [
     "dist"
-  ]
+  ],
+  "subsets": {
+    "electron": {
+      "include": [
+        "@electron/asar",
+        "adm-zip",
+        "dotenv",
+        "download-git-repo",
+        "temp"
+      ]
+    }
+  }
 }
