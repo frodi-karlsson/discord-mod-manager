@@ -303,6 +303,61 @@ class PatcherApp {
     this.mainWindow?.webContents.send("mods", this.mods);
   }
 
+  async onSetConfig(
+    _: IpcMainEvent,
+    obj: { id: string; name: string; value: string }
+  ) {
+    const mod = this.mods.find((mod) => mod.id === obj.id);
+    if (!mod) {
+      this.mainWindow?.webContents.send(
+        "error",
+        `Could not find mod ${obj.id}`
+      );
+      return;
+    }
+    const config = mod.config;
+    if (!config) {
+      this.mainWindow?.webContents.send(
+        "error",
+        `Mod ${obj.id} does not have a config`
+      );
+      return;
+    }
+    const configField = config.find((field) => field.name === obj.name);
+    if (!configField) {
+      this.mainWindow?.webContents.send(
+        "error",
+        `Mod ${obj.id} does not have a config field ${obj.name}`
+      );
+      return;
+    }
+    if (configField.type === "boolean") {
+      const isBoolean = obj.value === "true" || obj.value === "false";
+      if (!isBoolean) {
+        this.mainWindow?.webContents.send(
+          "error",
+          `Mod ${obj.id} config field ${obj.name} is a boolean, but the value is not a boolean`
+        );
+        return;
+      }
+      configField.value = obj.value === "true";
+    } else if (configField.type === "number") {
+      const isNumber = !isNaN(Number(obj.value));
+      if (!isNumber) {
+        this.mainWindow?.webContents.send(
+          "error",
+          `Mod ${obj.id} config field ${obj.name} is a number, but the value is not a number`
+        );
+        return;
+      }
+      configField.value = Number(obj.value);
+    } else {
+      configField.value = obj.value;
+    }
+    this.files.updateMod(mod.id, mod);
+    this.mainWindow?.webContents.send("mods", this.mods);
+  }
+
   async initApp() {
     this.updateMods();
 
@@ -310,6 +365,20 @@ class PatcherApp {
     this.createWindow();
     app.on("activate", () => {
       if (BrowserWindow.getAllWindows().length === 0) this.createWindow();
+    });
+
+    this.mainWindow?.webContents.on("dom-ready", () => {
+      const styles = path.resolve(__dirname, "styles/styles.css");
+      if (!this.files.exists(styles))
+        throw new Error("Could not find styles.css at " + styles);
+      this.mainWindow?.webContents.insertCSS(this.files.readFile(styles));
+      this.mainWindow?.setMinimumSize(800, 600);
+      this.mainWindow?.webContents.setWindowOpenHandler(({ url }) => {
+        const { shell } = require("electron");
+        console.log("shell", shell);
+        shell.openExternal(url);
+        return { action: "deny" };
+      });
     });
 
     app.on("window-all-closed", () => {
@@ -330,6 +399,7 @@ class PatcherApp {
     ipcMain.on("refresh", (_) => this.onRefresh());
     ipcMain.on("download", (event, obj) => this.onDownload(event, obj));
     ipcMain.on("install", (event, obj) => this.onInstall(event, obj));
+    ipcMain.on("set-config", (event, obj) => this.onSetConfig(event, obj));
   }
 }
 

@@ -5,309 +5,298 @@
     <title>Discord Mod Manager</title>
   </head>
   <body>
-    <style>
-      html, body {
-        margin: 0;
-        padding: 5px 0;
-      }
-
-      ::-webkit-scrollbar {
-        width: 5px;
-      }
-
-      ::-webkit-scrollbar-track {
-        background: #36393f;
-        border-radius: 2.5px;
-      }
-
-      ::-webkit-scrollbar-thumb {
-        background: #7289da;
-      }
-
-      body {
-        background-color: #36393f;
-        color: #fff;
-        font-family: sans-serif;
-        margin: 0;
-        padding: 5px 0;
-      }
-
-      h1, h2 {
-        text-align: center;
-        margin: 0;
-      }
-
-      #buttons {
-        width: 100%;
-        margin: 0 auto;
-        padding: 5% 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-evenly;
-        align-items: flex-start;
-      }
-
-      .button {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        width: min(100%, 555px);
-        margin: 0 auto;
-      }
-
-      .button p {
-        color: rgba(205, 205, 205, 0.8);
-        font-size: 0.8em;
-        width: 200px;
-      }
-
-      input[type="text"] {
-        height: 30px;
-        border-radius: 5px;
-        border: none;
-        background-color: #a5adbc;
-        color: #000000;
-        font-size: 1em;
-        font-weight: bold;
-      }
-
-      input[type="text"]:focus {
-        outline: none;
-      }
-
-      input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
-      }
-
-      button, ::-webkit-file-upload-button, input[type="file"] {
-        width: 100px;
-        height: 30px;
-        border-radius: 5px;
-        border: none;
-        background-color: #7289da;
-        color: #fff;
-        font-size: 1em;
-        font-weight: bold;
-        cursor: pointer;
-      }
-
-      #mod-list-top li span {
-        font-weight: bold;
-        color: rgba(205, 205, 205, 0.8);
-        width: 100%;
-        padding: 10px;
-      }
-
-      #mods {
-        padding: 20px 10px 0;
-        background-color: rgba(0, 0, 0, 0.1);
-      }
-
-      #mod-list {
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        max-height: 40%;
-        overflow-y: scroll;
-      }
-
-      #mod-list p {
-        margin: 0;
-      }
-
-      #mods ul {
-        list-style-type: none;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        align-items: flex-start;
-        width: 100%;
-        padding: 0;
-
-      }
-
-      #mods ul li {
-        display: flex;
-        flex-direction: row;
-        width: 100%;
-        padding: 10px 0;
-      }
-
-      #mods ul li > *{
-        width: 100%;
-        text-align: center;
-      }
-
-      #mods ul li:nth-child(even) {
-        background-color: rgba(0, 0, 0, 0.1);
-      }
-
-      #download-from-repo {
-        margin-right: 4px;
-      }
-    </style>
-    <h1>Discord Mod Manager</h1>
-    <div id="buttons">
-      <div class="button">
-        <button id="refresh">Refresh</button>
-        <p>Refreshes the mod list</p>
-        <script type="text/javascript">
-          const refresh = document.getElementById("refresh");
-          refresh.addEventListener("click", () => {
-            window.electron.api.send("refresh");
-          });
-        </script>
-      </div>
-      <div class="button">
-        <button id="patch">Patch</button>
-        <p>Patches Discord</p>
-        <script type="text/javascript">
-          const patch = document.getElementById("patch");
-          patch.addEventListener("click", () => {
-            window.electron.api.send("patch");
-          });
-        </script>
-      </div>
-      <div class="button">
-        <button id="restore">Restore</button>
-        <p>Restores Discord to vanilla</p>
-        <script type="text/javascript">
-          const restore = document.getElementById("restore");
-          restore.addEventListener("click", () => {
-            window.electron.api.send("unpatch");
-          });
-        </script>
-      </div>
-      <div class="button">
-        <input id="install-from-folder" type="file" webkitdirectory = "true" directory />
-        <p>Installs mod from folder</p>
-        <script type="text/javascript">
-          const installFromFolder = document.getElementById("install-from-folder");
-          installFromFolder.addEventListener("change", (event) => {
-            const input = document.getElementById("install-from-folder");
-            console.log(input.files[0].path.split("\\").slice(0, -1).join("\\") + "\\");
-            window.electron.api.send("install", {
-              path: input.files[0].path.split("\\").slice(0, -1).join("\\") + "\\",
+    <div class="title-header">
+      <img src="../assets/dmm.ico" alt="Discord Mod Manager" />
+      <h1>DISCORD MOD MANAGER</h1>
+    </div>
+    <section class="content">
+      <div id="buttons">
+        <div class="button">
+          <p>Refresh the mod list</p>
+          <button id="refresh">Refresh</button>
+          <script type="text/javascript">
+            const refresh = document.getElementById("refresh");
+            refresh.addEventListener("click", () => {
+              window.electron.api.send("refresh");
             });
-          });
-        </script>
+          </script>
+        </div>
+        <div class="button">
+          <p>Patch Discord</p>
+          <button id="patch">Patch</button>
+          <script type="text/javascript">
+            const patch = document.getElementById("patch");
+            patch.addEventListener("click", () => {
+              window.electron.api.send("patch");
+            });
+          </script>
+        </div>
+        <div class="button">
+          <p>Restore Discord to vanilla</p>
+          <button id="restore">Restore</button>
+          <script type="text/javascript">
+            const restore = document.getElementById("restore");
+            restore.addEventListener("click", () => {
+              window.electron.api.send("unpatch");
+            });
+          </script>
+        </div>
+        <div class="button">
+          <p>Install mod from folder</p>
+          <input
+            id="install-from-folder"
+            type="file"
+            webkitdirectory="true"
+            directory
+          />
+          <button
+            onclick="document.getElementById('install-from-folder').click()"
+          >
+            Install
+          </button>
+          <script type="text/javascript">
+            const installFromFolder = document.getElementById(
+              "install-from-folder"
+            );
+            installFromFolder.addEventListener("change", (event) => {
+              const input = document.getElementById("install-from-folder");
+              console.log(
+                input.files[0].path.split("\\").slice(0, -1).join("\\") + "\\"
+              );
+              window.electron.api.send("install", {
+                path:
+                  input.files[0].path.split("\\").slice(0, -1).join("\\") +
+                  "\\",
+              });
+            });
+          </script>
+        </div>
+        <div class="button">
+          <p>Install mod from git repository</p>
+          <div id="install-from-repo">
+            <input
+              id="download-from-repo"
+              type="text"
+              placeholder="Github repository"
+            />
+            <button id="install-from-repo" onclick="installFromRepo()">
+              Install
+            </button>
+            <script type="text/javascript">
+              function installFromRepo() {
+                const input = document.getElementById("download-from-repo");
+                const link = input.value;
+                if (!link || link === "") return alert("Please enter a link");
+                window.electron.api.send("download", link);
+              }
+            </script>
+          </div>
+        </div>
       </div>
-      <div class="button">
-      <div id="install-from-repo">
-        <input id="download-from-repo" type="text" placeholder="Github repository" />
-        <button id="install-from-repo" onclick="installFromRepo()">Install</button>
-        <script type="text/javascript">
-          function installFromRepo() {
-            const input = document.getElementById("download-from-repo");
-            const link = input.value;
-            if (!link || link === "") return alert("Please enter a link");
-            window.electron.api.send("download", link);
-          }
-        </script>
+      <div id="mods">
+        <h2>Mods</h2>
+        <ul id="mod-list-top">
+          <li>
+            <span>ID</span>
+            <span>Enabled</span>
+            <span>Description</span>
+            <span>Version</span>
+            <span>Author</span>
+            <span>Repository</span>
+            <span>Uninstall</span>
+          </li>
+        </ul>
+        <ul id="mod-list"></ul>
       </div>
-      <p>Installs mod from git repository</p>
-    </div>
-    </div>
-    <div id="mods">
-      <h2>Mods</h2>
-      <ul id="mod-list-top">
-        <li>
-          <span>ID</span>
-          <span>Enabled</span>
-          <span>Description</span>
-          <span>Version</span>
-          <span>Author</span>
-          <span>Repository</span>
-          <span>Uninstall</span>
-        </li>
-      </ul>
-      <ul id="mod-list"></ul>
-    </div>
-    <script type="text/javascript">
-      let mods = [];
+      <script type="text/javascript">
+        let mods = [];
 
-      window.electron.api.receive("mods", (data) => {
-        console.log("Received mods: ", data);
-        mods = [...data];
-        console.log("Mods: ", mods);
-        makeModList();
-      });
-
-      function makeModList() {
-        const modList = document.getElementById("mod-list");
-        const children = [...modList.children];
-        [...modList.children].forEach((child) => {
-          modList.removeChild(child);
+        window.electron.api.receive("mods", (data) => {
+          console.log("Received mods: ", data);
+          mods = [...data];
+          console.log("Mods: ", mods);
+          makeModList();
         });
-        const lis = mods
-          .map((mod) => {
+
+        function makeModList() {
+          const modList = document.getElementById("mod-list");
+          [...modList.children].forEach((child) => {
+            modList.removeChild(child);
+          });
+          const lis = mods.map((mod) => {
             const li = document.createElement("li");
             li.id = mod.id;
             li.version = mod.version;
             modList.appendChild(li);
             return li;
           });
-        lis.forEach((li) => {
-          const mod = mods.find((mod) => {
-            const id = mod.id;
-            const version = mod.version;
-            return id === li.id && version === li.version;
-          });
-          const id = document.createElement("span");
-          id.textContent = li.id;
-          id.classList.add("id");
-          li.appendChild(id);
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.checked = mod.enabled;
-          checkbox.title = "Enable/Disable";
-          checkbox.addEventListener("change", (event) => {
-            window.electron.api.send("enable", {
-              id: li.id,
-              version: li.version,
-              enabled: event.target.checked,
+          lis.forEach((li) => {
+            const mod = mods.find((mod) => {
+              const id = mod.id;
+              const version = mod.version;
+              return id === li.id && version === li.version;
             });
-          });
-          const checkBoxContainer = document.createElement("div");
-          checkBoxContainer.appendChild(checkbox);
-          li.appendChild(checkBoxContainer);
-          const description = document.createElement("p");
-          description.textContent = mod.description;
-          li.appendChild(description);
-          const version = document.createElement("p");
-          version.textContent = li.version;
-          li.appendChild(version);
-          const author = document.createElement("p");
-          author.textContent = mod.author;
-          li.appendChild(author);
-          const repo = document.createElement("p");
-          repo.textContent = mod.repository;
-          li.appendChild(repo);
-          const button = document.createElement("button");
-          button.textContent = "Uninstall";
-          button.addEventListener("click", (event) => {
-            window.electron.api.send("uninstall", {
-              id: li.id,
-              version: li.version,
+            const details = document.createElement("details");
+            details.open = false;
+            details.classList.add("mod-details");
+            const summary = document.createElement("summary");
+            summary.classList.add("mod-summary");
+            const summaryFlexDiv = document.createElement("div");
+            summaryFlexDiv.classList.add("mod-summary-flex-div");
+            const chevronUpSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" fill-opacity="0" stroke="var(--text-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down"><polyline points="6 9 12 15 18 9"></polyline>`;
+            const chevronDownSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" fill-opacity="0" stroke="var(--text-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-up"><polyline points="18 15 12 9 6 15"></polyline></svg>`;
+            const id = document.createElement("span");
+            id.textContent = li.id;
+            id.classList.add("id");
+            summaryFlexDiv.appendChild(id);
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.checked = mod.enabled;
+            checkbox.title = "Enable/Disable";
+            checkbox.addEventListener("change", (event) => {
+              window.electron.api.send("enable", {
+                id: li.id,
+                version: li.version,
+                enabled: event.target.checked,
+              });
             });
-            modList.removeChild(li);
-          });
+            const checkBoxContainer = document.createElement("div");
+            checkBoxContainer.appendChild(checkbox);
+            summaryFlexDiv.appendChild(checkBoxContainer);
+            const description = document.createElement("p");
+            description.textContent = mod.description;
+            summaryFlexDiv.appendChild(description);
+            const version = document.createElement("p");
+            version.textContent = li.version;
+            summaryFlexDiv.appendChild(version);
+            const author = document.createElement("p");
+            author.textContent = mod.author;
+            summaryFlexDiv.appendChild(author);
+            const repo = document.createElement("a");
+            repo.href = mod.repository;
+            repo.target = "_blank";
+            repo.textContent = "Repository"
+            summaryFlexDiv.appendChild(repo);
+            const button = document.createElement("button");
+            button.textContent = "Uninstall";
+            button.addEventListener("click", (event) => {
+              window.electron.api.send("uninstall", {
+                id: li.id,
+                version: li.version,
+              });
+              modList.removeChild(li);
+            });
 
-          li.appendChild(button);
+            summaryFlexDiv.appendChild(button);
+            const chevronUp = document.createElement("div");
+            chevronUp.classList.add("summary-chevron-container");
+            chevronUp.innerHTML = chevronUpSvg;
+            chevronUp.classList.add("summary-chevron-up");
+            summary.appendChild(chevronUp);
+            const chevronDown = document.createElement("div");
+            chevronDown.classList.add("summary-chevron-container");
+            chevronDown.innerHTML = chevronDownSvg;
+            chevronDown.classList.add("summary-chevron-down");
+            summary.appendChild(chevronDown);
+            summary.appendChild(summaryFlexDiv);
+            details.appendChild(summary);
+            const expandedDetails = document.createElement("div");
+            expandedDetails.classList.add("expanded-details");
+            const configurationHeader = document.createElement("h3");
+            configurationHeader.textContent = "Configuration";
+            expandedDetails.appendChild(configurationHeader);
+            const configurationFields = mod.config;
+            configurationFields?.forEach((conf) => {
+              const field = document.createElement("div");
+              field.classList.add("configuration-field");
+              const label = document.createElement("label");
+              label.textContent = conf.name + ": ";
+              const input = document.createElement("input");
+              input.value = conf.value ?? conf.defaultValue;
+              if (conf.type === "number") input.type = "number";
+              if (conf.type === "string") input.type = "text";
+              if (conf.type === "boolean") {
+                input.type = "checkbox";
+                input.checked = conf.value ?? conf.defaultValue;
+              }
+
+              input.addEventListener("change", (event) => {
+                window.electron.api.send("set-config", {
+                  id: li.id,
+                  name: conf.name,
+                  value: event.target.value,
+                });
+              });
+              field.appendChild(label);
+              field.appendChild(input);
+              expandedDetails.appendChild(field);
+            });
+            const dependenciesHeader = document.createElement("h3");
+            dependenciesHeader.textContent = "Dependencies";
+            expandedDetails.appendChild(dependenciesHeader);
+            if (mod.dependencies?.length > 0) {
+              const dependencies = document.createElement("ul");
+              dependencies.classList.add("dependency-list");
+              const dependencyHeader = document.createElement("li");
+              ["ID", "Version", "Repository"].forEach((text) => {
+                const span = document.createElement("span");
+                span.textContent = text;
+                dependencyHeader.appendChild(span);
+              });
+              dependencies.appendChild(dependencyHeader);
+              mod.dependencies?.forEach((dep) => {
+                const dependency = document.createElement("li");
+                const depId = document.createElement("span");
+                depId.textContent = dep.id;
+                dependency.appendChild(depId);
+                const depVersion = document.createElement("span");
+                depVersion.textContent = dep.version;
+                dependency.appendChild(depVersion);
+                if (dep.repository) {
+                  const depRepo = document.createElement("a");
+                  depRepo.href = dep.repository;
+                  depRepo.target = "_blank";
+                  depRepo.textContent = "Repository";
+                  dependency.appendChild(depRepo);
+                } else {
+                  const depRepo = document.createElement("span");
+                  depRepo.textContent = "No repository";
+                  dependency.appendChild(depRepo);
+                }
+                dependencies.appendChild(dependency);
+                expandedDetails.appendChild(dependencies);
+              });
+            } else {
+              const dependencies = document.createElement("p");
+              dependencies.textContent = "No dependencies";
+              expandedDetails.appendChild(dependencies);
+            }
+            const fullDescriptionHeader = document.createElement("h3");
+            fullDescriptionHeader.textContent = "Full Description";
+            expandedDetails.appendChild(fullDescriptionHeader);
+            const fullDescription = document.createElement("span");
+            fullDescription.classList.add("full-description");
+            fullDescription.innerHTML = mod.fullDescription.replaceAll(
+              "\n",
+              "<br>"
+            );
+            console.log(mod.fullDescription);
+            expandedDetails.appendChild(fullDescription);
+            details.appendChild(expandedDetails);
+            li.appendChild(details);
+          });
+        }
+
+        window.electron.api.receive("error", (data) => {
+          console.log("Received error: ", data);
+          alert(data);
         });
-      }
 
-      window.electron.api.receive("error", (data) => {
-        console.log("Received error: ", data);
-        alert(data);
-      });
-
-      window.electron.api.receive("success", (data) => {
-        console.log("Success: ", data);
-        alert(data);
-      });
-    </script>
+        window.electron.api.receive("success", (data) => {
+          console.log("Success: ", data);
+          alert(data);
+        });
+      </script>
+    </section>
   </body>
 </html>

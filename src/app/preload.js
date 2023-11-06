@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld("electron", {
         "refresh",
         "install",
         "download",
+        "set-config",
       ];
       if (validChannels.includes(channel)) {
         ipcRenderer.send(channel, data);

@@ -63,7 +63,10 @@ export type ElectronEvent =
   | "preferred-size-changed"
   | "frame-created";
 
-export type WindowEventCallback = (mainWindow: BrowserWindow) => void;
+export type WindowEventCallback = (
+  mainWindow: BrowserWindow,
+  configuration?: Record<string, any>
+) => void;
 
 export type EventJSON = {
   [key in ElectronEvent]?: {
@@ -88,11 +91,33 @@ export type ModSkeleton = {
 
 export type Dependency = ModSkeleton;
 
+export interface ConfigurationField<T = "string" | "boolean" | "number"> {
+  name: string;
+  description: string;
+  type: T;
+  defaultValue: T extends "string"
+    ? string
+    : T extends "boolean"
+    ? boolean
+    : T extends "number"
+    ? number
+    : never;
+  value?: T extends "string"
+    ? string
+    : T extends "boolean"
+    ? boolean
+    : T extends "number"
+    ? number
+    : never;
+}
+
 export type ModBase = ModSkeleton & {
   dependencies: Dependency[];
   author?: string;
   description?: string;
   homepage?: string;
+  fullDescription?: string;
+  config?: ConfigurationField[];
 };
 
 export type ModJSON = ModBase & {
@@ -110,53 +135,36 @@ export interface ElectronEventWithCallback {
   callback: WindowEventCallback;
 }
 
-export interface ConfigurationField {
-  name: string;
-  description: string;
-  type: "string" | "boolean" | "number";
-}
+export type ModOptions = {
+  id: string;
+  dependencies?: Dependency[];
+  version?: string;
+  repository?: string;
+  author?: string;
+  description?: string;
+  homepage?: string;
+  fullDescription?: string;
+  config?: ConfigurationField[];
+};
 
 /**
  * A discord mod is a collection of event listeners that are executed when the event is fired (on or once).
  * The mod can also have dependencies, which are other mods that must be loaded before this mod.
  * The mod is identified by its id, which should be descriptive of what the mod does, and should be unique.
  *
- * On an event, the callback is called with the event and the main window as arguments. Discord runs on electron,
- * and the main window is an electron BrowserWindow. The main window can be used to access the DOM of the discord
- * app.
+ * On an event, the callback is called with thee main window and optionally a record of all your configuration
+ * field names to their values as arguments. Discord runs on electron, and the main window is an electron
+ * BrowserWindow. The main window can be used to access the DOM of the discord app.
  * @see https://www.electronjs.org/docs/api/browser-window
  */
 export class Mod {
-  id: string;
   onList: ElectronEventWithCallback[] = [];
   onceList: ElectronEventWithCallback[] = [];
-  windowModifications: ((mainWindow: BrowserWindow) => void)[] = [];
-  dependencies: ModSkeleton[];
-  version: string;
-  repository?: string;
-  author?: string;
-  description?: string;
-  homepage?: string;
-  config?: ConfigurationField[];
+  windowModifications: WindowEventCallback[] = [];
+  opts: ModOptions;
 
-  constructor(
-    id: string,
-    dependencies: ModSkeleton[] = [],
-    version: string = "0.0.1",
-    repository?: string,
-    author?: string,
-    description?: string,
-    homepage?: string,
-    config?: ConfigurationField[]
-  ) {
-    this.id = id;
-    this.dependencies = dependencies;
-    this.version = version;
-    this.repository = repository;
-    this.author = author;
-    this.description = description;
-    this.homepage = homepage;
-    this.config = config;
+  constructor(options: ModOptions) {
+    this.opts = { ...options };
   }
 
   /**
@@ -178,7 +186,7 @@ export class Mod {
       ? Object.assign(standardOptions, options)
       : standardOptions;
     const func = ts.transpile(
-      `(mainWindow) => {
+      `(mainWindow, configuration) => {
       mainWindow.webContents.executeJavaScript(\`
       ${str
         .replaceAll("\\", "\\\\")
@@ -225,14 +233,16 @@ export class Mod {
 
   getJSON(): ModJSON {
     return {
-      id: this.id,
-      version: this.version,
-      dependencies: this.dependencies,
+      id: this.opts.id,
+      version: this.opts.version ?? "1.0.0",
+      dependencies: this.opts.dependencies ?? [],
       events: this.prepareForInjection(),
-      repository: this.repository,
-      homepage: this.homepage,
-      author: this.author,
-      description: this.description,
+      repository: this.opts.repository,
+      homepage: this.opts.homepage,
+      author: this.opts.author,
+      description: this.opts.description,
+      fullDescription: this.opts.fullDescription,
+      config: this.opts.config,
     };
   }
 }

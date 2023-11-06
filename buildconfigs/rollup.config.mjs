@@ -60,21 +60,7 @@ if (isElectron) {
     console.log(stderr);
   });
 
-  const assets = path.join(__dirname, "../assets");
-  const buildAssets = path.join(build, "assets");
-  if (!fs.existsSync(buildAssets)) {
-    fs.mkdirSync(buildAssets);
-  }
-  execSync(`cp -r ${assets} ${buildAssets}`, (err, stdout, stderr) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    console.log(stdout);
-    console.log(stderr);
-  });
-
-  console.log("Electron specific files copied");
+  console.log("Electron dependencies installed");
 }
 
 const templates = path.join(__dirname, "../src/app/templates");
@@ -92,6 +78,30 @@ execSync(`cp -r ${templates} ${buildApp}`, (err, stdout, stderr) => {
 });
 
 console.log("Templates copied");
+
+const assets = path.join(__dirname, "../assets");
+execSync(`cp -r ${assets} ${buildApp}`, (err, stdout, stderr) => {
+  if (err) {
+    console.error(err);
+    return;
+  }
+  console.log(stdout);
+  console.log(stderr);
+});
+
+console.log("Assets copied");
+
+const styles = path.join(__dirname, "../src/app/styles");
+execSync(`cp -r ${styles} ${buildApp}`, (err, stdout, stderr) => {
+  if (err) {
+    console.error(err);
+    return;
+  }
+  console.log(stdout);
+  console.log(stderr);
+});
+
+console.log("Styles copied");
 
 function getTypesConfig(input, output) {
   return {

@@ -272,4 +272,12 @@ export class Files {
     this.backUpCore();
     this.writeMainScreen(mainScreen, dryRun);
   }
+
+  readFile(path: string) {
+    return fs.readFileSync(path, "utf-8");
+  }
+
+  exists(path: string) {
+    return fs.existsSync(path);
+  }
 }
