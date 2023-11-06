@@ -26,6 +26,7 @@
     "@rollup/plugin-typescript": "^11.1.5",
     "@types/adm-zip": "^0.5.3",
     "@types/node": "^20.8.10",
+    "@types/temp": "^0.9.3",
     "cross-env": "^7.0.3",
     "electron-builder": "^24.6.4",
     "nodemon": "^3.0.1",
@@ -41,7 +42,8 @@
     "adm-zip": "^0.5.10",
     "dotenv": "^16.3.1",
     "download-git-repo": "^3.0.2",
-    "electron": "^27.0.3"
+    "electron": "^27.0.3",
+    "temp": "^0.9.4"
   },
   "type": "module",
   "exports": {

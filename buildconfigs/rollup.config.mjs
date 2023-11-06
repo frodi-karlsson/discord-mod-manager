@@ -77,11 +77,12 @@ if (isElectron) {
   console.log("Electron specific files copied");
 }
 
-const templates = path.join(__dirname, "../templates");
-if (!fs.existsSync(templates)) {
-  fs.mkdirSync(templates);
+const templates = path.join(__dirname, "../src/app/templates");
+const buildApp = path.join(build, "app");
+if (!fs.existsSync(buildApp)) {
+  fs.mkdirSync(buildApp, { recursive: true });
 }
-execSync(`cp -r ${templates} ${build}`, (err, stdout, stderr) => {
+execSync(`cp -r ${templates} ${buildApp}`, (err, stdout, stderr) => {
   if (err) {
     console.error(err);
     return;
@@ -119,6 +120,7 @@ function getElectronConfig(input, output) {
       "adm-zip",
       "@electron/asar",
       "typescript",
+      "temp",
     ],
   };
 }
@@ -139,6 +141,7 @@ function getNPMPackageConfig(input, output, cjs = false) {
       "adm-zip",
       "@electron/asar",
       "typescript",
+      "temp",
     ],
   };
 }
@@ -146,19 +149,14 @@ function getNPMPackageConfig(input, output, cjs = false) {
 const config = [
   // this is the electron app
   getTypesConfig("src/types.d.ts", "build/types.d.ts"),
-  getElectronConfig("src/mod/mod.ts", "build/app/mod.cjs"),
+  getElectronConfig("src/app/app.ts", "build/app/app.cjs"),
   getElectronConfig(
     "src/app/discord-patcher.ts",
     "build/app/discord-patcher.cjs"
   ),
-  getElectronConfig("src/app/app.ts", "build/app/app.cjs"),
-  {
-    input: "src/app/preload.js",
-    output: {
-      file: "build/app/preload.js",
-      format: "cjs",
-    },
-  },
+  getElectronConfig("src/app/preload.js", "build/app/preload.js"),
+  getElectronConfig("src/util/files.ts", "build/util/files.cjs"),
+  getElectronConfig("src/util/download.ts", "build/util/download.cjs"),
   // this is the types installed by npm. First esm
   getNPMPackageConfig("src/mod/mod.ts", "dist/mod/mod.mjs"),
   getNPMPackageConfig("src/index.ts", "dist/index.mjs"),
