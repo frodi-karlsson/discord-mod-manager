@@ -5,6 +5,7 @@
 dist
 *.tsbuildinfo
 release
+*.d.ts.map
 
 # Rollup files
 .rollup.cache
