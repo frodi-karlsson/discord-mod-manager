@@ -116,15 +116,20 @@ export class DiscordPatcher {
 
       let modString = "";
 
-      modString += `// MOD: ${modJson.id}`;
-      modString += `if (typeof modConfig === "undefined") var modConfig = {};
-      modConfig["${modJson.id}"] = {
-        ${modJson.config
+      modString += `// MOD: ${modJson.id}\n`;
+      if ((modJson.config ?? []).length > 0) {
+        const mapped = modJson.config
           ?.map(
             (field) => `${field.name}: ${field.value ?? field.defaultValue}`
           )
-          .join(",\n")}
-      };`;
+          .join(",\n");
+        modString += `if (typeof modConfig === "undefined") var modConfig = {};
+        modConfig["${modJson.id}"] = {
+          ${mapped}
+        };
+        mainWindow.webContents.executeJavaScript("window['modConfig'] = { ${mapped} };");
+        `;
+      }
 
       Object.entries(modJson.events.events).forEach(([event, callback]) => {
         const on = callback.on
@@ -145,7 +150,7 @@ export class DiscordPatcher {
       const windowModifications = modJson.events.windowModifications;
       if (windowModifications) {
         const mods = windowModifications
-          .map((cb) => `(${cb})(mainWindow, modConfig["${modJson.id}"]);`)
+          .map((cb) => `(${cb})(mainWindow);`)
           .join("\n");
         modString += `\n${mods}`;
       }

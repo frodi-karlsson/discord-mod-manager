@@ -1,6 +1,6 @@
 {
   "name": "discord-modding-framework",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "An attempt at a flexible framework for modifying the discord client",
   "main": "dist/app.cjs",
   "scripts": {

@@ -2,6 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="script-src 'self' 'unsafe-inline';"
+    />
     <title>Discord Mod Manager</title>
   </head>
   <body>
@@ -93,32 +97,34 @@
           </div>
         </div>
       </div>
-      <div id="mods">
+      <div id="mods-wrapper">
         <h2>Mods</h2>
-        <ul id="mod-list-top">
-          <li>
-            <span>ID</span>
-            <span>Enabled</span>
-            <span>Description</span>
-            <span>Version</span>
-            <span>Author</span>
-            <span>Repository</span>
-            <span>Uninstall</span>
-          </li>
-        </ul>
-        <ul id="mod-list"></ul>
+        <div id="mods">
+          <ul id="mod-list-top">
+            <li>
+              <span>ID</span>
+              <span>Enabled</span>
+              <span>Description</span>
+              <span>Version</span>
+              <span>Author</span>
+              <span>Repository</span>
+              <span>Uninstall</span>
+            </li>
+          </ul>
+          <ul id="mod-list"></ul>
+        </div>
       </div>
       <script type="text/javascript">
         let mods = [];
 
-        window.electron.api.receive("mods", (data) => {
-          console.log("Received mods: ", data);
-          mods = [...data];
-          console.log("Mods: ", mods);
-          makeModList();
+        window.electron.api.receive("mods", (newMods, opts) => {
+          console.log("Received mods: ", newMods);
+          mods = [...newMods];
+          console.log("Mods: ", newMods);
+          makeModList(opts?.expand);
         });
 
-        function makeModList() {
+        function makeModList(expand) {
           const modList = document.getElementById("mod-list");
           [...modList.children].forEach((child) => {
             modList.removeChild(child);
@@ -137,7 +143,7 @@
               return id === li.id && version === li.version;
             });
             const details = document.createElement("details");
-            details.open = false;
+            details.open = expand?.includes(li.id) ?? false;
             details.classList.add("mod-details");
             const summary = document.createElement("summary");
             summary.classList.add("mod-summary");
@@ -164,19 +170,25 @@
             checkBoxContainer.appendChild(checkbox);
             summaryFlexDiv.appendChild(checkBoxContainer);
             const description = document.createElement("p");
-            description.textContent = mod.description;
+            description.textContent = mod.description ?? "No description";
             summaryFlexDiv.appendChild(description);
             const version = document.createElement("p");
-            version.textContent = li.version;
+            version.textContent = li.version ?? "No version";
             summaryFlexDiv.appendChild(version);
             const author = document.createElement("p");
-            author.textContent = mod.author;
+            author.textContent = mod.author ?? "No author";
             summaryFlexDiv.appendChild(author);
-            const repo = document.createElement("a");
-            repo.href = mod.repository;
-            repo.target = "_blank";
-            repo.textContent = "Repository"
-            summaryFlexDiv.appendChild(repo);
+            if (mod.repository) {
+              const repo = document.createElement("a");
+              repo.href = mod.repository;
+              repo.target = "_blank";
+              repo.textContent = "Repository";
+              summaryFlexDiv.appendChild(repo);
+            } else {
+              const repo = document.createElement("p");
+              repo.textContent = "No repository";
+              summaryFlexDiv.appendChild(repo);
+            }
             const button = document.createElement("button");
             button.textContent = "Uninstall";
             button.addEventListener("click", (event) => {
@@ -204,36 +216,92 @@
             expandedDetails.classList.add("expanded-details");
             const configurationHeader = document.createElement("h3");
             configurationHeader.textContent = "Configuration";
-            expandedDetails.appendChild(configurationHeader);
+            const configurationDiv = document.createElement("div");
+            configurationDiv.classList.add("expanded-details-subdiv");
+            configurationDiv.appendChild(configurationHeader);
+            const configuration = document.createElement("ul");
+            configuration.classList.add("configuration-list");
+            const configurationHeaderLi = document.createElement("li");
+            ["Name", "Value"].forEach((text) => {
+              const span = document.createElement("span");
+              span.textContent = text;
+              configurationHeaderLi.appendChild(span);
+            });
+            configuration.appendChild(configurationHeaderLi);
             const configurationFields = mod.config;
-            configurationFields?.forEach((conf) => {
-              const field = document.createElement("div");
+            const getExpandedMods = () =>
+              [...document.getElementsByClassName("expanded-details")]
+                .filter((p) => p.parentNode.open)
+                .map((p) => p.parentNode.parentNode.id);
+            if (configurationFields?.length > 0) {
+              configurationFields?.forEach((conf) => {
+                const field = document.createElement("li");
+                field.classList.add("configuration-field");
+                const label = document.createElement("label");
+                label.textContent = conf.name + ": ";
+                const input = document.createElement("input");
+                if (conf.type === "number") {
+                  input.type = "number";
+                  input.value = conf.value ?? conf.defaultValue ?? -1;
+                  input.addEventListener("change", (event) => {
+                    window.electron.api.send("set-config", {
+                      id: li.id,
+                      name: conf.name,
+                      value: event.target.value,
+                      expand: getExpandedMods(),
+                    });
+                  });
+                }
+                if (conf.type === "string") {
+                  input.type = "text";
+                  input.value = conf.value ?? conf.defaultValue ?? "";
+                  input.addEventListener("change", (event) => {
+                    window.electron.api.send("set-config", {
+                      id: li.id,
+                      name: conf.name,
+                      value: event.target.value,
+                      expand: getExpandedMods(),
+                    });
+                  });
+                }
+                if (conf.type === "boolean") {
+                  input.type = "checkbox";
+                  input.checked =
+                    (conf.value !== undefined
+                      ? conf.value
+                      : conf.defaultValue !== undefined
+                      ? conf.defaultValue
+                      : "false"
+                    ).toString() === "true";
+                  input.addEventListener("change", (event) => {
+                    window.electron.api.send("set-config", {
+                      id: li.id,
+                      name: conf.name,
+                      value: event.target.checked,
+                      expand: getExpandedMods(),
+                    });
+                  });
+                }
+
+                field.appendChild(label);
+                field.appendChild(input);
+                configuration.appendChild(field);
+              });
+            } else {
+              const field = document.createElement("li");
               field.classList.add("configuration-field");
               const label = document.createElement("label");
-              label.textContent = conf.name + ": ";
-              const input = document.createElement("input");
-              input.value = conf.value ?? conf.defaultValue;
-              if (conf.type === "number") input.type = "number";
-              if (conf.type === "string") input.type = "text";
-              if (conf.type === "boolean") {
-                input.type = "checkbox";
-                input.checked = conf.value ?? conf.defaultValue;
-              }
-
-              input.addEventListener("change", (event) => {
-                window.electron.api.send("set-config", {
-                  id: li.id,
-                  name: conf.name,
-                  value: event.target.value,
-                });
-              });
+              label.textContent = "No configuration";
               field.appendChild(label);
-              field.appendChild(input);
-              expandedDetails.appendChild(field);
-            });
+              configuration.appendChild(field);
+            }
+            configurationDiv.appendChild(configuration);
+            expandedDetails.appendChild(configurationDiv);
+            const dependenciesDiv = document.createElement("div");
+            dependenciesDiv.classList.add("expanded-details-subdiv");
             const dependenciesHeader = document.createElement("h3");
             dependenciesHeader.textContent = "Dependencies";
-            expandedDetails.appendChild(dependenciesHeader);
+            dependenciesDiv.appendChild(dependenciesHeader);
             if (mod.dependencies?.length > 0) {
               const dependencies = document.createElement("ul");
               dependencies.classList.add("dependency-list");
@@ -264,24 +332,28 @@
                   dependency.appendChild(depRepo);
                 }
                 dependencies.appendChild(dependency);
-                expandedDetails.appendChild(dependencies);
               });
+              dependenciesDiv.appendChild(dependencies);
             } else {
               const dependencies = document.createElement("p");
               dependencies.textContent = "No dependencies";
-              expandedDetails.appendChild(dependencies);
+              dependenciesDiv.appendChild(dependencies);
             }
+            expandedDetails.appendChild(dependenciesDiv);
+            const fullDescriptionDiv = document.createElement("div");
+            fullDescriptionDiv.classList.add("expanded-details-subdiv");
             const fullDescriptionHeader = document.createElement("h3");
             fullDescriptionHeader.textContent = "Full Description";
-            expandedDetails.appendChild(fullDescriptionHeader);
+            fullDescriptionDiv.appendChild(fullDescriptionHeader);
             const fullDescription = document.createElement("span");
             fullDescription.classList.add("full-description");
-            fullDescription.innerHTML = mod.fullDescription.replaceAll(
-              "\n",
-              "<br>"
-            );
+            fullDescription.innerHTML =
+              mod.fullDescription?.replaceAll("\n", "<br>") ??
+              mod.description ??
+              "No description";
             console.log(mod.fullDescription);
-            expandedDetails.appendChild(fullDescription);
+            fullDescriptionDiv.appendChild(fullDescription);
+            expandedDetails.appendChild(fullDescriptionDiv);
             details.appendChild(expandedDetails);
             li.appendChild(details);
           });

@@ -305,8 +305,14 @@ class PatcherApp {
 
   async onSetConfig(
     _: IpcMainEvent,
-    obj: { id: string; name: string; value: string }
+    obj: {
+      id: string;
+      name: string;
+      value: string | boolean | number;
+      expand: string[];
+    }
   ) {
+    console.log("set-config", obj.id, obj.name, obj.value);
     const mod = this.mods.find((mod) => mod.id === obj.id);
     if (!mod) {
       this.mainWindow?.webContents.send(
@@ -332,7 +338,10 @@ class PatcherApp {
       return;
     }
     if (configField.type === "boolean") {
-      const isBoolean = obj.value === "true" || obj.value === "false";
+      const isBoolean =
+        obj.value === "true" ||
+        obj.value === "false" ||
+        typeof obj.value === "boolean";
       if (!isBoolean) {
         this.mainWindow?.webContents.send(
           "error",
@@ -340,7 +349,7 @@ class PatcherApp {
         );
         return;
       }
-      configField.value = obj.value === "true";
+      configField.value = obj.value === true || obj.value === "true";
     } else if (configField.type === "number") {
       const isNumber = !isNaN(Number(obj.value));
       if (!isNumber) {
@@ -354,8 +363,11 @@ class PatcherApp {
     } else {
       configField.value = obj.value;
     }
+    console.log("configField", configField);
     this.files.updateMod(mod.id, mod);
-    this.mainWindow?.webContents.send("mods", this.mods);
+    this.mainWindow?.webContents.send("mods", this.mods, {
+      expand: obj.expand,
+    });
   }
 
   async initApp() {

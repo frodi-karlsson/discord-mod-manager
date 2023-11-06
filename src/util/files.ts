@@ -6,15 +6,8 @@ import { IncludeListMod, ModJSON } from "../mod/mod.js";
 import { createPackage, extractAll } from "@electron/asar";
 
 export class Files {
-  modFolder: string;
-  installFolder: string;
-  temp: string | null = null;
   corePath: string | null = null;
-
-  constructor() {
-    this.modFolder = this.getModFolder();
-    this.installFolder = this.getInstalledFolder();
-  }
+  temp: string | null = null;
 
   getModFolder(): string {
     let modFolder;
@@ -45,7 +38,7 @@ export class Files {
   }
 
   getIncludeList(): IncludeListMod[] {
-    const includeListPath = path.resolve(this.modFolder, "include.json");
+    const includeListPath = path.resolve(this.getModFolder(), "include.json");
     if (!fs.existsSync(includeListPath)) {
       fs.writeFileSync(includeListPath, "[]");
     }
@@ -64,19 +57,19 @@ export class Files {
       }
     });
     fs.writeFileSync(
-      path.resolve(this.modFolder, "include.json"),
+      path.resolve(this.getModFolder(), "include.json"),
       JSON.stringify(includeList)
     );
   }
 
   getInstalledFolder(): string {
-    const installed = path.resolve(this.modFolder, "installed");
+    const installed = path.resolve(this.getModFolder(), "installed");
     if (!fs.existsSync(installed)) fs.mkdirSync(installed);
     return installed;
   }
 
   getModFolderFor(modId: string): string {
-    const modFolder = path.resolve(this.installFolder, modId);
+    const modFolder = path.resolve(this.getInstalledFolder(), modId);
     if (!fs.existsSync(modFolder)) fs.mkdirSync(modFolder);
     return modFolder;
   }
@@ -87,7 +80,7 @@ export class Files {
   }
 
   isDuplicate(modId: string): boolean {
-    return fs.existsSync(path.resolve(this.installFolder, modId));
+    return fs.existsSync(path.resolve(this.getInstalledFolder(), modId));
   }
 
   getZipPath(modId: string): string {
@@ -131,8 +124,8 @@ export class Files {
   }
 
   listMods(): string[] {
-    return fs.readdirSync(this.installFolder).filter((file) => {
-      const filePath = path.resolve(this.installFolder, file);
+    return fs.readdirSync(this.getInstalledFolder()).filter((file) => {
+      const filePath = path.resolve(this.getInstalledFolder(), file);
       return fs.statSync(filePath).isDirectory();
     });
   }
