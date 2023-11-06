@@ -21,7 +21,7 @@ const isElectron = process.env.IS_ELECTRON === "true";
 if (isElectron) {
   console.log("Building for electron");
   const projectPackageJson = JSON.parse(
-    fs.readFileSync(path.join(__dirname, "package.json"), "utf-8")
+    fs.readFileSync(path.join(__dirname, "../package.json"), "utf-8")
   );
   const packageJson = {
     main: "app/app.cjs",
@@ -60,7 +60,7 @@ if (isElectron) {
     console.log(stderr);
   });
 
-  const assets = path.join(__dirname, "assets");
+  const assets = path.join(__dirname, "../assets");
   const buildAssets = path.join(build, "assets");
   if (!fs.existsSync(buildAssets)) {
     fs.mkdirSync(buildAssets);
