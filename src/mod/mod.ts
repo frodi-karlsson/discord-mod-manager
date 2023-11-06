@@ -110,6 +110,12 @@ export interface ElectronEventWithCallback {
   callback: WindowEventCallback;
 }
 
+export interface ConfigurationField {
+  name: string;
+  description: string;
+  type: "string" | "boolean" | "number";
+}
+
 /**
  * A discord mod is a collection of event listeners that are executed when the event is fired (on or once).
  * The mod can also have dependencies, which are other mods that must be loaded before this mod.
@@ -131,6 +137,7 @@ export class Mod {
   author?: string;
   description?: string;
   homepage?: string;
+  config?: ConfigurationField[];
 
   constructor(
     id: string,
@@ -139,7 +146,8 @@ export class Mod {
     repository?: string,
     author?: string,
     description?: string,
-    homepage?: string
+    homepage?: string,
+    config?: ConfigurationField[]
   ) {
     this.id = id;
     this.dependencies = dependencies;
@@ -148,11 +156,13 @@ export class Mod {
     this.author = author;
     this.description = description;
     this.homepage = homepage;
+    this.config = config;
   }
 
   /**
    * Allows you to create a callback from a file path.
    * Anything in this file will be executed when the event is fired.
+   * This is a nice way to keep your code clean and organized.
    */
   static getCallbackFromFile(
     path: string,
