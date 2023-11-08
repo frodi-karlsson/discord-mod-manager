@@ -1,3 +1,6 @@
+# Warning
+Don't use this! Use Better Discord's plugin system instead. This is just a fun hobby project.
+
 # Introduction
 
 This repository serves as two things:
