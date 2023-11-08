@@ -1,29 +1,29 @@
 # Introduction
 
 This repository serves as two things:
-- A mod manager for discord, allowing for easy installation of modifications to the app
-- A package for providing an easy way to make mods in a format supported by the mod manager
+- A patcher for discord, allowing for easy installation of modifications to the app
+- A package for providing an easy way to make mods in a format supported by the patcher
 
-## Mod Manager
+## patcher
 
-The mod manager allows running modifications to the discord app. It does this by patching the discord app using asar.
+The patcher allows running modifications to the discord app. It does this by patching the discord app using asar.
 Mods are JSON files that contain callbacks for various events, such as when the DOM is ready, when the app is ready, etc.
 They also contain mod metadata.
 
 # Usage
 
-## Mod Manager
+## Patcher
 
-If you aren't a developer, find the latest release [here](https://github.com/frodi-karlsson/discord-mod-manager/releases/latest). I also recommend reading the "Using the mod manager" section below.
+If you aren't a developer, find the latest release [here](https://github.com/frodi-karlsson/discord-mod-manager/releases/latest). I also recommend reading the "Using the patcher" section below.
 
-Otherwise, see the development section below under the "Using the mod manager" section.
-
-
-### Using the mod manager
-Here is an image of the mod manager in action:
+Otherwise, see the development section below under the "Using the patcher" section.
 
 
-![Mod Manager](https://gcdnb.pbrd.co/images/SDleFnwK28qG.png?o=1)
+### Using the patcher
+Here is an image of the patcher in action:
+
+
+![Patcher](https://gcdnb.pbrd.co/images/SDleFnwK28qG.png?o=1)
 
 ### Currently implemented features as shown are:
 - Refresh: Refreshes the list of installed mods. Should only be necessary if you manually move a mod into the mod folders.
@@ -92,7 +92,7 @@ exampleMod.once('dom-ready', (mainWindow, configuration) => {
 // There is more stuff yet, hang in there:
 exampleMod.on('ready', Mod.getCallbackFromFile(path.join(__dirname, 'ready.js'))); // this will run the code in ready.js in the window when the app is ready
 const modFile = path.join(__dirname 'mod.json');
-// this will create a mod.json file in the root of your project. Perfect for the install from repository feature of the mod manager.
+// this will create a mod.json file in the root of your project. Perfect for the install from repository feature of the patcher.
 fs.writeFileSync(modFile, JSON.stringify(exampleMod.getJSON(), null, 2));
 ```
 
@@ -117,13 +117,13 @@ if (msg) {
 ```
 As you can see, it's not very complicated.
 
-This new mod can then be installed by the mod manager. If you keep your mod in a git repository, you can install it directly from there as long as mod.json is in the root of the repository, otherwise you can navigate to the folder containing mod.json and install it from there using the file picker dialog.
+This new mod can then be installed by the patcher. If you keep your mod in a git repository, you can install it directly from there as long as mod.json is in the root of the repository, otherwise you can navigate to the folder containing mod.json and install it from there using the file picker dialog.
 
 Here is a real mod as an example that uses configs: [frodi-karlsson-modpack](https://github.com/frodi-karlsson/frodi-karlsson-modpack)
 
 # Development
 
-The mod manager is built using electron. I've tried to keep the app small, so there's no react or anything like that. The UI is built using vanilla HTML, CSS and JS.
+The patcher is built using electron. I've tried to keep the app small, so there's no react or anything like that. The UI is built using vanilla HTML, CSS and JS.
 
 Clone the repository and run `npm i` to install dependencies.
 
