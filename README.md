@@ -20,10 +20,6 @@ Otherwise, see the development section below under the "Using the patcher" secti
 
 
 ### Using the patcher
-Here is an image of the patcher in action:
-
-
-![Patcher](https://gcdnb.pbrd.co/images/SDleFnwK28qG.png?o=1)
 
 ### Currently implemented features as shown are:
 - Refresh: Refreshes the list of installed mods. Should only be necessary if you manually move a mod into the mod folders.
